@@ -1,12 +1,21 @@
-import { Button } from './components/ui/button'
+import ExploreGenres from './components/explore-genres'
+import Footer from './components/footer'
+import HomeHero from './components/home-hero'
+import MeetTalent from './components/meet-talent'
+import Navbar from './components/navbar'
+import PopularPicks from './components/popular-picks'
+import RecentSearches from './components/recent-searches'
 
 function App() {
   return (
     <>
-      <h1 className="text-5xl font-bold">Home</h1>
-      <div className="flex min-h-svh flex-col items-center justify-center">
-        <Button>Click me</Button>
-      </div>
+      <Navbar />
+      <HomeHero />
+      <RecentSearches />
+      <PopularPicks />
+      <ExploreGenres />
+      <MeetTalent />
+      <Footer />
     </>
   )
 }
