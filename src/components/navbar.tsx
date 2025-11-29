@@ -1,21 +1,10 @@
-import { Menu, User, Film, Tv, Users } from 'lucide-react'
+import { Film, Menu, Tv, User, Users } from 'lucide-react'
+import { Link, NavLink } from 'react-router'
 import { Container } from './container'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { Button } from './ui/button'
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-} from './ui/navigation-menu'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from './ui/sheet'
-import { NavLink } from 'react-router'
+import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from './ui/navigation-menu'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet'
 
 // Hardcoded auth state - will be replaced with real auth later
 const IS_LOGGED_IN = true
@@ -33,22 +22,21 @@ export default function Navbar() {
     <nav className="border-b">
       <Container>
         <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center justify-center size-8 rounded bg-primary text-primary-foreground">
-              <span className="text-sm font-bold">M</span>
+          <Link to="/">
+            <div className="flex items-center gap-2">
+              <div className="flex size-8 items-center justify-center rounded bg-primary text-primary-foreground">
+                <span className="text-sm font-bold">M</span>
+              </div>
+              <span className="text-xl font-bold">MovieSurf</span>
             </div>
-            <span className="text-xl font-bold">MovieSurf</span>
-          </div>
+          </Link>
           <NavigationMenu className="hidden md:flex">
             <NavigationMenuList>
               {navLinks.map((link) => {
                 const Icon = link.icon
                 return (
                   <NavigationMenuItem key={link.label}>
-                    <NavigationMenuLink
-                      href={link.href}
-                      className="flex items-center gap-2"
-                    >
+                    <NavigationMenuLink href={link.href} className="flex items-center gap-2">
                       <Icon className="size-4" />
                       <span>{link.label}</span>
                     </NavigationMenuLink>
@@ -68,14 +56,14 @@ export default function Navbar() {
               <SheetHeader>
                 <SheetTitle>Menu</SheetTitle>
               </SheetHeader>
-              <nav className="flex flex-col gap-4 mt-8">
+              <nav className="mt-8 flex flex-col gap-4">
                 {navLinks.map((link) => {
                   const Icon = link.icon
                   return (
                     <NavLink
                       key={link.label}
                       to={link.href}
-                      className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-accent transition-colors"
+                      className="flex items-center gap-3 rounded-md px-4 py-3 transition-colors hover:bg-accent"
                     >
                       <Icon className="size-5" />
                       <span className="font-medium">{link.label}</span>
@@ -83,7 +71,7 @@ export default function Navbar() {
                   )
                 })}
               </nav>
-              <div className="mt-auto pt-8 border-t">
+              <div className="mt-auto border-t pt-8">
                 {IS_LOGGED_IN ? (
                   <div className="flex items-center gap-3 px-4 py-3">
                     <Avatar>
@@ -98,14 +86,14 @@ export default function Navbar() {
                   </div>
                 ) : (
                   <Button variant="outline" className="w-full" size="sm">
-                    <User className="size-4 mr-2" />
+                    <User className="mr-2 size-4" />
                     Login
                   </Button>
                 )}
               </div>
             </SheetContent>
           </Sheet>
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden items-center gap-4 md:flex">
             {IS_LOGGED_IN ? (
               <div className="flex items-center gap-2">
                 <Avatar>
@@ -120,7 +108,7 @@ export default function Navbar() {
               </div>
             ) : (
               <Button variant="outline" size="sm">
-                <User className="size-4 mr-2" />
+                <User className="mr-2 size-4" />
                 Login
               </Button>
             )}
@@ -130,4 +118,3 @@ export default function Navbar() {
     </nav>
   )
 }
-
