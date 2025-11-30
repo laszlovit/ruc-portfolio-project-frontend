@@ -1,56 +1,63 @@
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Logo } from '@/components/ui/logo'
 import { useAuth } from '@/contexts/AuthContext'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Label } from '@radix-ui/react-label'
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router'
 import * as z from 'zod'
 import { FormRootError } from '../components/FormRootError'
-import { Logo } from '../components/ui/logo'
 
-const formSchema = z.object({
-  username: z.string().min(1, 'Username required'),
-  password: z.string().min(1, 'Password required'),
-})
+const formSchema = z
+  .object({
+    username: z.string().min(1, 'Please enter a username'),
+    email: z.email('Invalid email address'),
+    password: z.string().min(1, 'Please enter a password'),
+    confirmPassword: z.string().min(1, 'Please confirm your password'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  })
 
-export function LoginPage() {
-  const { login } = useAuth()
+export function SignUpPage() {
+  const { signup } = useAuth()
   const navigate = useNavigate()
-  const [rememberMe, setRememberMe] = useState<boolean>(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       username: '',
+      email: '',
       password: '',
+      confirmPassword: '',
     },
   })
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/users/login`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/users/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          username: data.username,
+          email: data.email,
+          password: data.password,
+        }),
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Login failed' }))
-
-        if (response.status === 401) {
-          form.setError('root', { message: errorData.message || 'Invalid username or password' })
-        } else {
-          form.setError('root', { message: 'An unexpected error occurred' })
-        }
+        console.error('Signup failed', await response.text())
+        const errorData = await response.json().catch(() => ({ message: 'Sign up failed' }))
+        form.setError('root', { message: errorData.message || 'An unexpected error occurred' })
         return
       }
 
       const result = await response.json()
+      console.log('Signed up:', result)
       console.log('Logged in:', result)
-      login(result.username, result.token, rememberMe)
+      signup(result.username, result.token)
       navigate('/')
     } catch (err) {
       console.error('Network error', err)
@@ -64,9 +71,10 @@ export function LoginPage() {
         <Logo size="lg" />
         <p className="text-center font-semibold text-text-light">Ride the wave of cinema</p>
       </div>
-      <div className="w-full max-w-sm space-y-6">
-        <h1 className="mb-2 text-center text-3xl font-bold">Welcome Back!</h1>
-        <h4 className="mb-6 text-center text-xl font-semibold">Log in</h4>
+      <div className="w-full max-w-sm space-y-4">
+        <h1 className="mb-2 text-center text-3xl font-bold">Welcome!</h1>
+        <h4 className="mb-6 text-center text-xl font-semibold">Create an account</h4>
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormRootError />
@@ -87,6 +95,20 @@ export function LoginPage() {
 
               <FormField
                 control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="your@email.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem className="space-y-2">
@@ -98,26 +120,30 @@ export function LoginPage() {
                   </FormItem>
                 )}
               />
-            </div>
 
-            <div className="relative my-6 flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="remember"
-                checked={rememberMe}
-                className="h-4 w-4 rounded border-gray-300 accent-primary focus:ring-primary"
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="••••••••" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              <Label htmlFor="remember">Remember me</Label>
             </div>
 
             <Button type="submit" className="w-full bg-primary">
-              Log in
+              Sign Up
             </Button>
           </form>
           <div className="flex justify-center gap-1">
-            <p>Don't have an account?</p>
-            <Link className="text-primary" to={'/signup'}>
-              Sign Up
+            <p>Already one of us?</p>
+            <Link className="text-primary" to={'/login'}>
+              Log in
             </Link>
           </div>
         </Form>
