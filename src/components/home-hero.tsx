@@ -1,48 +1,41 @@
 import { Search } from 'lucide-react'
+import Accordion from 'react-bootstrap/Accordion'
+import Button from 'react-bootstrap/Button'
+import Form from 'react-bootstrap/Form'
+import InputGroup from 'react-bootstrap/InputGroup'
 import { Container } from './container'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion'
-import { Button } from './ui/button'
-import { Input } from './ui/input'
 
 export default function HomeHero() {
   return (
-    <section className="py-8">
+    <section className="py-5">
       <Container>
-        <div className="rounded-lg py-16 bg-gray-50 px-6 lg:px-0">
-          <div className="mx-auto max-w-3xl text-center">
-            <h1 className="text-4xl font-extrabold tracking-tight text-balance mb-4 lg:text-5xl">
-              Discover Your Next Obsession
-            </h1>
-            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+        <div className="bg-light p-lg-5 rounded p-4">
+          <div className="mx-auto text-center" style={{ maxWidth: '48rem' }}>
+            <h1 className="display-4 fw-bold mb-4">Discover Your Next Obsession</h1>
+            <p className="mx-auto mb-4 text-muted" style={{ maxWidth: '32rem' }}>
               Explore a vast library of movies and actors. Find ratings, reviews, and personalized recommendations.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 mb-4 items-center">
-              <div className="relative flex-1 bg-white">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search movies, actors, or genres..."
-                  className="pl-10 h-10 text-base"
-                />
+            <div className="d-flex flex-column flex-sm-row align-items-center mb-4 gap-3">
+              <div className="w-100 flex-grow-1">
+                <InputGroup>
+                  <InputGroup.Text id="basic-addon1">
+                    <Search />
+                  </InputGroup.Text>
+                  <Form.Control placeholder="Search movies, actors, or genres..." />
+                  <Button variant="primary">Search</Button>
+                </InputGroup>
               </div>
-              <Button size="lg">
-                Search
-              </Button>
             </div>
-            <div className="flex justify-center">
-              <Accordion type="single" collapsible className="w-full max-w-md">
-                <AccordionItem value="advanced-search" className="border-none">
-                  <AccordionTrigger className="justify-center py-2 text-sm text-muted-foreground hover:text-foreground">
-                    Advanced Search
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="p-4 border rounded-lg bg-card text-left">
-                      <p className="text-sm text-muted-foreground">
-                        Advanced search options will be available here (filters, date ranges, etc.)
-                      </p>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
+            <div className="d-flex justify-content-center">
+              <Accordion defaultActiveKey="null" style={{ maxWidth: '28rem', width: '100%' }}>
+                <Accordion.Item eventKey="0">
+                  <Accordion.Header>Advanced Search</Accordion.Header>
+                  <Accordion.Body>
+                    <p className="small mb-0 text-muted">
+                      Advanced search options will be available here (filters, date ranges, etc.)
+                    </p>
+                  </Accordion.Body>
+                </Accordion.Item>
               </Accordion>
             </div>
           </div>

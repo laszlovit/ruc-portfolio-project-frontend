@@ -1,11 +1,12 @@
 import { Container } from '@/components/container'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useTitleRatingQuery } from '@/feature/ratings/queries'
 import { useTitleQuery } from '@/feature/titles/queries'
 import { formatRuntime } from '@/lib/utils'
 import { Bookmark, Star } from 'lucide-react'
+import { useState } from 'react'
+import Badge from 'react-bootstrap/Badge'
+import Button from 'react-bootstrap/Button'
+import Nav from 'react-bootstrap/Nav'
 import { Link, useNavigate, useParams } from 'react-router'
 
 // TODO: User rating and bookmarking needs to be implemented once auth flow is ready
@@ -13,6 +14,7 @@ import { Link, useNavigate, useParams } from 'react-router'
 export default function Title() {
   const { titleId } = useParams()
   const navigate = useNavigate()
+  const [activeTab, setActiveTab] = useState('details')
 
   const titleQuery = useTitleQuery(titleId!)
   const titleRatingQuery = useTitleRatingQuery(titleId!)
@@ -36,114 +38,122 @@ export default function Title() {
 
   return (
     <>
-      <div className="min-h-screen bg-background">
-        <Container className="py-8">
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[300px_1fr]">
-            <div className="flex flex-col gap-4">
-              <div className="relative aspect-2/3 w-full overflow-hidden rounded-lg bg-muted">
-                <img
-                  src={title.posterUrl ?? placeholderPosterUrl}
-                  alt={title.primaryTitle}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-              <div className="space-y-2 text-sm">
-                <div>
-                  <span className="font-medium">Type: </span>
-                  <span>{title.type}</span>
+      <div style={{ minHeight: '100vh' }}>
+        <Container className="py-5">
+          <div className="row g-4">
+            <div className="col-lg-3 col-12">
+              <div className="d-flex flex-column gap-3">
+                <div
+                  className="position-relative w-100 rounded bg-secondary overflow-hidden"
+                  style={{ aspectRatio: '2/3' }}
+                >
+                  <img
+                    src={title.posterUrl ?? placeholderPosterUrl}
+                    alt={title.primaryTitle}
+                    className="w-100 h-100"
+                    style={{ objectFit: 'cover' }}
+                  />
                 </div>
-                <div>
-                  <span className="font-medium">Year: </span>
-                  <span>{title.startYear}</span>
-                </div>
-                <div>
-                  <span className="font-medium">Duration: </span>
-                  <span>{runtime || 'N/A'}</span>
+                <div className="d-flex flex-column gap-2 small">
+                  <div>
+                    <span className="fw-medium">Type: </span>
+                    <span>{title.type}</span>
+                  </div>
+                  <div>
+                    <span className="fw-medium">Year: </span>
+                    <span>{title.startYear}</span>
+                  </div>
+                  <div>
+                    <span className="fw-medium">Duration: </span>
+                    <span>{runtime || 'N/A'}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-6">
-              <h1 className="text-4xl font-bold">{title.primaryTitle}</h1>
+            <div className="col-lg-9 col-12">
+              <div className="d-flex flex-column gap-4">
+                <h1 className="display-4 fw-bold">{title.primaryTitle}</h1>
 
-              <div className="flex flex-wrap items-center gap-6">
-                <div className="flex items-center gap-2">
-                  <Star className={`${titleRatingAvg ? 'fill-foreground' : 'stroke-foreground'}`} />
-                  <span>{titleRatingAvg}</span>
-                  <span className="text-sm text-muted-foreground">({titleRatingNumVotes} Reviews)</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Your Rating:</span>
-                  <div className="group flex items-center gap-1 hover:cursor-pointer">
-                    <Star className="group-hover:fill-foreground group-hover:transition-colors" />
-                    <span>Rate</span>
+                <div className="d-flex align-items-center gap-4 flex-wrap">
+                  <div className="d-flex align-items-center gap-2">
+                    <Star style={{ fill: titleRatingAvg ? 'currentColor' : 'none' }} />
+                    <span>{titleRatingAvg}</span>
+                    <span className="small text-muted">({titleRatingNumVotes} Reviews)</span>
                   </div>
+
+                  <div className="d-flex align-items-center gap-2">
+                    <span className="small fw-medium">Your Rating:</span>
+                    <div className="d-flex align-items-center gap-1" style={{ cursor: 'pointer' }}>
+                      <Star />
+                      <span>Rate</span>
+                    </div>
+                  </div>
+
+                  <Button variant="outline" size="sm">
+                    <Bookmark className="me-2" style={{ width: '1rem', height: '1rem' }} />
+                    Bookmark
+                  </Button>
                 </div>
 
-                <Button variant="outline" size="sm">
-                  <Bookmark className="mr-2 size-4" />
-                  Bookmark
-                </Button>
+                {title.plot && (
+                  <div>
+                    <h2 className="mb-2 h5 fw-semibold">Description</h2>
+                    <p className="text-muted">{title.plot}</p>
+                  </div>
+                )}
+
+                {title.people.length > 0 && (
+                  <div>
+                    <h2 className="mb-3 h5 fw-semibold">Cast & Contributors</h2>
+                    <div className="d-flex gap-2 flex-wrap">
+                      {title.people.map((person) => (
+                        <Badge key={person.nconst} bg="secondary" className="px-3 py-2">
+                          <Link to={`/people/${person.nconst}`} className="text-decoration-none text-white">
+                            {person.fullName}
+                            {person.characterName && ` (${person.characterName})`}
+                          </Link>
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {title.plot && (
-                <div>
-                  <h2 className="mb-2 text-xl font-semibold">Description</h2>
-                  <p className="text-muted-foreground">{title.plot}</p>
-                </div>
-              )}
-
-              {title.people.length > 0 && (
-                <div>
-                  <h2 className="mb-3 text-xl font-semibold">Cast & Contributors</h2>
-                  <div className="flex flex-wrap gap-2">
-                    {title.people.map((person) => (
-                      <Badge key={person.nconst} variant="secondary" asChild className="px-3 py-1.5 text-sm">
-                        <Link to={`/people/${person.nconst}`}>
-                          {person.fullName}
-                          {person.characterName && ` (${person.characterName})`}
-                        </Link>
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
-          <div className="mt-12">
-            <Tabs defaultValue="details" className="w-full">
-              <TabsList className="mb-6">
-                <TabsTrigger value="details">Details</TabsTrigger>
-                <TabsTrigger value="related">Related Items</TabsTrigger>
-              </TabsList>
+          <div className="mt-5">
+            <Nav variant="tabs" activeKey={activeTab} onSelect={(k) => setActiveTab(k || 'details')} className="mb-4">
+              <Nav.Item>
+                <Nav.Link eventKey="details">Details</Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey="related">Related Items</Nav.Link>
+              </Nav.Item>
+            </Nav>
 
-              <TabsContent value="details" className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="font-medium">Original Title:</span>
-                    <span className="ml-2 text-muted-foreground">{title.originalTitle || 'N/A'}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium">Rated:</span>
-                    <span className="ml-2 text-muted-foreground">{title.rated || 'N/A'}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium">Genres:</span>
-                    <span className="ml-2 text-muted-foreground">{title.genres.join(', ') || 'N/A'}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium">Countries:</span>
-                    <span className="ml-2 text-muted-foreground">{title.countries.join(', ') || 'N/A'}</span>
-                  </div>
+            {activeTab === 'details' && (
+              <div className="row g-3">
+                <div className="col-md-6 col-12">
+                  <span className="fw-medium">Original Title:</span>
+                  <span className="ms-2 text-muted">{title.originalTitle || 'N/A'}</span>
                 </div>
-              </TabsContent>
+                <div className="col-md-6 col-12">
+                  <span className="fw-medium">Rated:</span>
+                  <span className="ms-2 text-muted">{title.rated || 'N/A'}</span>
+                </div>
+                <div className="col-md-6 col-12">
+                  <span className="fw-medium">Genres:</span>
+                  <span className="ms-2 text-muted">{title.genres.join(', ') || 'N/A'}</span>
+                </div>
+                <div className="col-md-6 col-12">
+                  <span className="fw-medium">Countries:</span>
+                  <span className="ms-2 text-muted">{title.countries.join(', ') || 'N/A'}</span>
+                </div>
+              </div>
+            )}
 
-              <TabsContent value="related" className="space-y-4">
-                <p className="text-muted-foreground">Related items will be displayed here.</p>
-              </TabsContent>
-            </Tabs>
+            {activeTab === 'related' && <p className="text-muted">Related items will be displayed here.</p>}
           </div>
         </Container>
       </div>

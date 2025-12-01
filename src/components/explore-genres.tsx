@@ -1,62 +1,72 @@
+import { useGenresQuery } from '@/feature/genres/queries'
+import type { Genre } from '@/types/genres'
+import Card from 'react-bootstrap/Card'
+import Placeholder from 'react-bootstrap/Placeholder'
+import { Link } from 'react-router'
 import { Container } from './container'
-import { Card, CardHeader, CardTitle } from './ui/card'
-import { useGenresQuery } from '@/feature/genres/queries';
-import type { Genre } from '@/types/genres';
-import { Skeleton } from './ui/skeleton';
 
 function SkeletonGenreCard() {
   return (
-    <Card className="cursor-pointer hover:bg-accent transition-colors">
-      <CardHeader className="flex flex-col items-center text-center">
-        <CardTitle className=""><Skeleton className="h-4 w-24" /></CardTitle>
-      </CardHeader>
+    <Card>
+      <Card.Body className="d-flex flex-column align-items-center text-center">
+        <Placeholder as="p" animation="glow">
+          <Placeholder xs={6} />
+        </Placeholder>
+      </Card.Body>
     </Card>
   )
 }
 
 function GenreCard({ genre }: { genre: Genre }) {
   return (
-    <Card className="cursor-pointer hover:bg-accent transition-colors">
-      <CardHeader className="flex flex-col items-center text-center">
-        <CardTitle>{genre.genreName}</CardTitle>
-      </CardHeader>
+    <Card as={Link} to={`/titles?genre=${genre.genreName.toLowerCase()}`}>
+      <Card.Body className="d-flex flex-column align-items-center text-center">
+        <Card.Title className="mb-0">{genre.genreName}</Card.Title>
+      </Card.Body>
     </Card>
   )
 }
 
 export default function ExploreGenres() {
-  const query = useGenresQuery();
-  const genres = query.data?.items || [];
+  const query = useGenresQuery()
+  const genres = query.data?.items || []
 
-  if (query.isFetching){
+  if (query.isFetching) {
     return (
-      <section className="py-8">
-      <Container>
-        <h2 className="text-2xl font-semibold mb-6">Explore by Genre</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <SkeletonGenreCard />
-          <SkeletonGenreCard /> 
-          <SkeletonGenreCard />
-        </div>
-      </Container>
-    </section>
+      <section className="py-5">
+        <Container>
+          <h2 className="h3 fw-semibold mb-4">Explore by Genre</h2>
+          <div className="row g-3">
+            <div className="col-md-6 col-lg-4 col-12">
+              <SkeletonGenreCard />
+            </div>
+            <div className="col-md-6 col-lg-4 col-12">
+              <SkeletonGenreCard />
+            </div>
+            <div className="col-md-6 col-lg-4 col-12">
+              <SkeletonGenreCard />
+            </div>
+          </div>
+        </Container>
+      </section>
     )
   }
-  if (query.isError){
+  if (query.isError) {
     return <div>Error: {query.error.message}</div>
   }
 
   return (
-    <section className="py-8">
+    <section className="py-5">
       <Container>
-        <h2 className="text-2xl font-semibold mb-6">Explore by Genre</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <h2 className="h3 fw-semibold mb-4">Explore by Genre</h2>
+        <div className="row g-3">
           {genres.map((genre) => (
-            <GenreCard key={genre.id} genre={genre} />
+            <div key={genre.id} className="col-md-6 col-lg-4 col-12">
+              <GenreCard genre={genre} />
+            </div>
           ))}
         </div>
       </Container>
     </section>
   )
 }
-

@@ -1,15 +1,6 @@
-import * as React from 'react'
 import { Star } from 'lucide-react'
+import Card from 'react-bootstrap/Card'
 import { Container } from './container'
-import {
-  Carousel,
-  type CarouselApi,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from './ui/carousel'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card'
 
 type Movie = {
   id: number
@@ -69,83 +60,40 @@ function MovieCard({ movie }: { movie: Movie }) {
 
   return (
     <Card className="overflow-hidden pt-0">
-      <CardHeader className="p-0">
-      <div className="relative md:aspect-[2/3] w-full overflow-hidden aspect-[2.5/3] bg-muted">
-        <img
-          src={imageUrl}
-          alt={movie.title}
-          className="h-full w-full object-cover"
-        />
-      </div>
-      </CardHeader>
-      <CardContent>
-        <CardTitle className="text-lg">{movie.title}</CardTitle>
-        <CardDescription>{movie.genre}</CardDescription>
-      </CardContent>
-      <CardFooter>
-      <div className="flex items-center gap-1">
-          <Star className="size-4 fill-foreground" />
-          <span className="text-sm font-medium">{movie.rating}</span>
+      <div className="p-0">
+        <div className="position-relative w-100 overflow-hidden bg-secondary ratio" style={{ aspectRatio: '2/3' }}>
+          <img src={imageUrl} alt={movie.title} className="w-100 h-100" style={{ objectFit: 'cover' }} />
         </div>
-      </CardFooter>
+      </div>
+      <Card.Body>
+        <Card.Title className="h6">{movie.title}</Card.Title>
+        <Card.Text className="text-muted">{movie.genre}</Card.Text>
+      </Card.Body>
+      <Card.Footer>
+        <div className="d-flex align-items-center gap-1">
+          <Star style={{ width: '1rem', height: '1rem', fill: 'currentColor' }} />
+          <span className="small fw-medium">{movie.rating}</span>
+        </div>
+      </Card.Footer>
     </Card>
   )
 }
 
 export default function PopularPicks() {
-  const [api, setApi] = React.useState<CarouselApi>()
-  const [current, setCurrent] = React.useState(0)
-
-  React.useEffect(() => {
-    if (!api) {
-      return
-    }
-
-    setCurrent(api.selectedScrollSnap())
-
-    api.on('select', () => {
-      setCurrent(api.selectedScrollSnap())
-    })
-  }, [api])
+  // Show only the first 5 movies
+  const displayedMovies = popularMovies.slice(0, 5)
 
   return (
-    <section className="py-8">
+    <section className="py-5">
       <Container>
-        <h2 className="text-2xl font-semibold mb-6">Popular Picks for You</h2>
-        <Carousel
-          setApi={setApi}
-          opts={{
-            align: 'start',
-            loop: true,
-          }}
-          className="w-full"
-        >
-          <CarouselContent>
-            {popularMovies.map((movie) => (
-              <CarouselItem
-                key={movie.id}
-                className="basis-full md:basis-1/2 lg:basis-1/5"
-              >
-                <MovieCard movie={movie} />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="md:-left-12 left-2" />
-          <CarouselNext className="md:-right-12 right-2" />
-          <div className="flex justify-center gap-2 mt-6">
-            {popularMovies.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => api?.scrollTo(index)}
-                className={`
-                  h-2 rounded-full transition-all
-                  ${current === index ? 'w-8 bg-foreground' : 'w-2 bg-muted-foreground/50'}
-                `}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
-        </Carousel>
+        <h2 className="mb-4 h3 fw-semibold">Popular Picks for You</h2>
+        <div className="row g-3">
+          {displayedMovies.map((movie) => (
+            <div key={movie.id} className="col-6 col-md-4 col-lg">
+              <MovieCard movie={movie} />
+            </div>
+          ))}
+        </div>
       </Container>
     </section>
   )

@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
+import Badge from 'react-bootstrap/Badge'
 import { Container } from './container'
-import { Badge } from './ui/badge'
 
 const recentSearches = [
   'Sci-Fi Thrillers',
@@ -12,20 +12,20 @@ const recentSearches = [
 
 export default function RecentSearches() {
   return (
-    <section className="py-8">
+    <section className="py-5">
       <Container>
-        <h2 className="text-2xl font-semibold mb-4">Your Recent Searches</h2>
-        <div className="flex flex-wrap gap-2">
+        <h2 className="h3 fw-semibold mb-4">Your Recent Searches</h2>
+        <div className="d-flex flex-wrap gap-2">
           {recentSearches.map((search, index) => (
             <Badge
               key={index}
-              variant="outline"
-              className="cursor-pointer hover:bg-accent transition-colors"
-              asChild
+              bg="secondary"
+              as={Link}
+              to="#"
+              style={{ cursor: 'pointer' }}
+              className="text-decoration-none"
             >
-              <Link to="#">
-                {search}
-              </Link>  
+              {search}
             </Badge>
           ))}
         </div>

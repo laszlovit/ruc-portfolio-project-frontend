@@ -1,10 +1,10 @@
 import { Film, Menu, Tv, User, Users } from 'lucide-react'
 import { Link, NavLink } from 'react-router'
+import Button from 'react-bootstrap/Button'
+import Nav from 'react-bootstrap/Nav'
+import Offcanvas from 'react-bootstrap/Offcanvas'
 import { Container } from './container'
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
-import { Button } from './ui/button'
-import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from './ui/navigation-menu'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet'
+import { useState } from 'react'
 
 // Hardcoded auth state - will be replaced with real auth later
 const IS_LOGGED_IN = true
@@ -17,98 +17,100 @@ const navLinks = [
   { href: '#', label: 'Celebs', icon: Users },
 ]
 
-export default function Navbar() {
+function Avatar({ src, alt, fallback }: { src?: string; alt: string; fallback: string }) {
   return (
-    <nav className="border-b">
+    <div className="rounded-circle overflow-hidden bg-secondary d-flex align-items-center justify-content-center" style={{ width: '2.5rem', height: '2.5rem' }}>
+      {src ? (
+        <img src={src} alt={alt} className="w-100 h-100" style={{ objectFit: 'cover' }} />
+      ) : (
+        <span className="small fw-medium">{fallback}</span>
+      )}
+    </div>
+  )
+}
+
+export default function Navbar() {
+  const [showOffcanvas, setShowOffcanvas] = useState(false)
+
+  const handleClose = () => setShowOffcanvas(false)
+  const handleShow = () => setShowOffcanvas(true)
+
+  return (
+    <nav className="border-bottom">
       <Container>
-        <div className="flex h-16 items-center justify-between">
-          <Link to="/">
-            <div className="flex items-center gap-2">
-              <div className="flex size-8 items-center justify-center rounded bg-primary text-primary-foreground">
-                <span className="text-sm font-bold">M</span>
+        <div className="d-flex align-items-center justify-content-between" style={{ height: '4rem' }}>
+          <Link to="/" className="text-decoration-none">
+            <div className="d-flex align-items-center gap-2">
+              <div className="d-flex align-items-center justify-content-center rounded bg-primary text-white" style={{ width: '2rem', height: '2rem' }}>
+                <span className="small fw-bold">M</span>
               </div>
-              <span className="text-xl font-bold">MovieSurf</span>
+              <span className="h5 fw-bold mb-0">MovieSurf</span>
             </div>
           </Link>
-          <NavigationMenu className="hidden md:flex">
-            <NavigationMenuList>
+          <div className="d-none d-md-flex">
+            <Nav as="ul" className="d-flex align-items-center gap-3">
               {navLinks.map((link) => {
                 const Icon = link.icon
                 return (
-                  <NavigationMenuItem key={link.label}>
-                    <NavigationMenuLink href={link.href} className="flex items-center gap-2">
-                      <Icon className="size-4" />
+                  <Nav.Item as="li" key={link.label}>
+                    <Nav.Link as={Link} to={link.href} className="d-flex align-items-center gap-2">
+                      <Icon style={{ width: '1rem', height: '1rem' }} />
                       <span>{link.label}</span>
-                    </NavigationMenuLink>
-                  </NavigationMenuItem>
+                    </Nav.Link>
+                  </Nav.Item>
                 )
               })}
-            </NavigationMenuList>
-          </NavigationMenu>
-          <Sheet>
-            <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon">
-                <Menu className="size-5" />
-                <span className="sr-only">Open menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[300px] sm:w-[400px]">
-              <SheetHeader>
-                <SheetTitle>Menu</SheetTitle>
-              </SheetHeader>
-              <nav className="mt-8 flex flex-col gap-4">
+            </Nav>
+          </div>
+          <Button variant="link" className="d-md-none p-2" onClick={handleShow}>
+            <Menu style={{ width: '1.25rem', height: '1.25rem' }} />
+            <span className="visually-hidden">Open menu</span>
+          </Button>
+          <Offcanvas show={showOffcanvas} onHide={handleClose} placement="start" style={{ width: '300px' }}>
+            <Offcanvas.Header closeButton>
+              <Offcanvas.Title>Menu</Offcanvas.Title>
+            </Offcanvas.Header>
+            <Offcanvas.Body className="d-flex flex-column">
+              <nav className="d-flex flex-column gap-3">
                 {navLinks.map((link) => {
                   const Icon = link.icon
                   return (
                     <NavLink
                       key={link.label}
                       to={link.href}
-                      className="flex items-center gap-3 rounded-md px-4 py-3 transition-colors hover:bg-accent"
+                      className="d-flex align-items-center gap-3 rounded px-3 py-2 text-decoration-none"
+                      onClick={handleClose}
                     >
-                      <Icon className="size-5" />
-                      <span className="font-medium">{link.label}</span>
+                      <Icon style={{ width: '1.25rem', height: '1.25rem' }} />
+                      <span className="fw-medium">{link.label}</span>
                     </NavLink>
                   )
                 })}
               </nav>
-              <div className="mt-auto border-t pt-8">
+              <div className="mt-auto border-top pt-4">
                 {IS_LOGGED_IN ? (
-                  <div className="flex items-center gap-3 px-4 py-3">
-                    <Avatar>
-                      <AvatarImage src={USER_AVATAR} alt={USER_NAME} />
-                      <AvatarFallback>
-                        {USER_NAME.split(' ')
-                          .map((n) => n[0])
-                          .join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm font-medium">{USER_NAME}</span>
+                  <div className="d-flex align-items-center gap-3 px-3 py-2">
+                    <Avatar src={USER_AVATAR} alt={USER_NAME} fallback={USER_NAME.split(' ').map((n) => n[0]).join('')} />
+                    <span className="small fw-medium">{USER_NAME}</span>
                   </div>
                 ) : (
-                  <Button variant="outline" className="w-full" size="sm">
-                    <User className="mr-2 size-4" />
+                  <Button variant="outline" className="w-100" size="sm">
+                    <User className="me-2" style={{ width: '1rem', height: '1rem' }} />
                     Login
                   </Button>
                 )}
               </div>
-            </SheetContent>
-          </Sheet>
-          <div className="hidden items-center gap-4 md:flex">
+            </Offcanvas.Body>
+          </Offcanvas>
+          <div className="d-none d-md-flex align-items-center gap-3">
             {IS_LOGGED_IN ? (
-              <div className="flex items-center gap-2">
-                <Avatar>
-                  <AvatarImage src={USER_AVATAR} alt={USER_NAME} />
-                  <AvatarFallback>
-                    {USER_NAME.split(' ')
-                      .map((n) => n[0])
-                      .join('')}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-sm font-medium">{USER_NAME}</span>
+              <div className="d-flex align-items-center gap-2">
+                <Avatar src={USER_AVATAR} alt={USER_NAME} fallback={USER_NAME.split(' ').map((n) => n[0]).join('')} />
+                <span className="small fw-medium">{USER_NAME}</span>
               </div>
             ) : (
               <Button variant="outline" size="sm">
-                <User className="mr-2 size-4" />
+                <User className="me-2" style={{ width: '1rem', height: '1rem' }} />
                 Login
               </Button>
             )}
