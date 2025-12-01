@@ -1,9 +1,14 @@
-import { useFormContext } from 'react-hook-form'
+import { Alert } from 'react-bootstrap'
+import type { UseFormReturn } from 'react-hook-form'
 
-export function FormRootError() {
-  const { formState } = useFormContext()
+export function FormRootError({ form }: { form: UseFormReturn<any> }) {
+  const rootError = form.formState.errors.root
 
-  if (!formState.errors.root) return null
+  if (!rootError) return null
 
-  return <p className="text-sm font-medium text-destructive">{formState.errors.root.message}</p>
+  return (
+    <Alert variant="danger" className="mb-3">
+      {rootError.message}
+    </Alert>
+  )
 }

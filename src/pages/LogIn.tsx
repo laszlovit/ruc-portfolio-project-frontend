@@ -1,15 +1,12 @@
-import { Button } from '@/components/ui/button'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
 import { useAuth } from '@/contexts/AuthContext'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Label } from '@radix-ui/react-label'
 import { useState } from 'react'
+import { Button, Container, Form } from 'react-bootstrap'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router'
 import * as z from 'zod'
 import { FormRootError } from '../components/FormRootError'
-import { Logo } from '../components/ui/logo'
+import { Logo } from '../components/Logo'
 
 const formSchema = z.object({
   username: z.string().min(1, 'Username required'),
@@ -59,70 +56,63 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center">
-      <div className="mb-12 space-y-1.5">
+    <div className="d-flex flex-column align-items-center justify-content-center min-vh-100">
+      <div className="mb-5 text-center">
         <Logo size="lg" />
-        <p className="text-center font-semibold text-text-light">Ride the wave of cinema</p>
+        <p className="fw-semibold mt-2">Ride the wave of cinema</p>
       </div>
-      <div className="w-full max-w-sm space-y-6">
-        <h1 className="mb-2 text-center text-3xl font-bold">Welcome Back!</h1>
-        <h4 className="mb-6 text-center text-xl font-semibold">Log in</h4>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormRootError />
-            <div className="space-y-10">
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem className="space-y-2">
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <Input placeholder="your username" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem className="space-y-2">
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+      <Container style={{ maxWidth: '400px' }}>
+        <h1 className="mb-2 fw-bold text-center">Welcome Back!</h1>
+        <h4 className="mb-4 fw-semibold text-center">Log in</h4>
 
-            <div className="relative my-6 flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="remember"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 accent-primary focus:ring-primary"
-              />
-              <Label htmlFor="remember">Remember me</Label>
-            </div>
+        <Form onSubmit={form.handleSubmit(onSubmit)}>
+          <FormRootError form={form} />
 
-            <Button type="submit" className="w-full bg-primary">
-              Log in
-            </Button>
-          </form>
-          <div className="flex justify-center gap-1">
-            <p>Don't have an account?</p>
-            <Link className="text-primary" to={'/signup'}>
+          <Form.Group className="mb-4">
+            <Form.Label>Username</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="your username"
+              {...form.register('username')}
+              isInvalid={!!form.formState.errors.username}
+            />
+            <Form.Control.Feedback type="invalid">{form.formState.errors.username?.message}</Form.Control.Feedback>
+          </Form.Group>
+
+          <Form.Group className="mb-4">
+            <Form.Label>Password</Form.Label>
+            <Form.Control
+              type="password"
+              placeholder="••••••••"
+              {...form.register('password')}
+              isInvalid={!!form.formState.errors.password}
+            />
+            <Form.Control.Feedback type="invalid">{form.formState.errors.password?.message}</Form.Control.Feedback>
+          </Form.Group>
+
+          <Form.Group className="mb-4">
+            <Form.Check
+              type="checkbox"
+              id="remember"
+              label="Remember me"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+            />
+          </Form.Group>
+
+          <Button type="submit" variant="primary" className="w-100 mb-3">
+            Log in
+          </Button>
+
+          <div className="text-center">
+            <span>Don't have an account? </span>
+            <Link to="/signup" className="text-decoration-none">
               Sign Up
             </Link>
           </div>
         </Form>
-      </div>
+      </Container>
     </div>
   )
 }

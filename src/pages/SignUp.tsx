@@ -1,18 +1,16 @@
-import { Button } from '@/components/ui/button'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Logo } from '@/components/ui/logo'
 import { useAuth } from '@/contexts/AuthContext'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Button, Container, Form } from 'react-bootstrap'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router'
 import * as z from 'zod'
 import { FormRootError } from '../components/FormRootError'
+import { Logo } from '../components/Logo'
 
 const formSchema = z
   .object({
     username: z.string().min(1, 'Please enter a username'),
-    email: z.email('Invalid email address'),
+    email: z.string().email('Invalid email address'),
     password: z.string().min(1, 'Please enter a password'),
     confirmPassword: z.string().min(1, 'Please confirm your password'),
   })
@@ -66,88 +64,77 @@ export function SignUpPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center">
-      <div className="mb-12 space-y-1.5">
+    <div className="d-flex flex-column align-items-center justify-content-center min-vh-100">
+      <div className="mb-5 text-center">
         <Logo size="lg" />
-        <p className="text-center font-semibold text-text-light">Ride the wave of cinema</p>
+        <p className="fw-semibold mt-2">Ride the wave of cinema</p>
       </div>
-      <div className="w-full max-w-sm space-y-4">
-        <h1 className="mb-2 text-center text-3xl font-bold">Welcome!</h1>
-        <h4 className="mb-6 text-center text-xl font-semibold">Create an account</h4>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormRootError />
-            <div className="space-y-10">
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem className="space-y-2">
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <Input placeholder="your username" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+      <Container style={{ maxWidth: '400px' }}>
+        <h1 className="mb-2 fw-bold text-center">Welcome!</h1>
+        <h4 className="mb-4 fw-semibold text-center">Create an account</h4>
 
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem className="space-y-2">
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="your@email.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        <Form onSubmit={form.handleSubmit(onSubmit)}>
+          <FormRootError form={form} />
 
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem className="space-y-2">
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <Form.Group className="mb-4">
+            <Form.Label>Username</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="your username"
+              {...form.register('username')}
+              isInvalid={!!form.formState.errors.username}
+            />
+            <Form.Control.Feedback type="invalid">{form.formState.errors.username?.message}</Form.Control.Feedback>
+          </Form.Group>
 
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem className="space-y-2">
-                    <FormLabel>Confirm Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+          <Form.Group className="mb-4">
+            <Form.Label>Email</Form.Label>
+            <Form.Control
+              type="email"
+              placeholder="your@email.com"
+              {...form.register('email')}
+              isInvalid={!!form.formState.errors.email}
+            />
+            <Form.Control.Feedback type="invalid">{form.formState.errors.email?.message}</Form.Control.Feedback>
+          </Form.Group>
 
-            <Button type="submit" className="w-full bg-primary">
-              Sign Up
-            </Button>
-          </form>
-          <div className="flex justify-center gap-1">
-            <p>Already one of us?</p>
-            <Link className="text-primary" to={'/login'}>
+          <Form.Group className="mb-4">
+            <Form.Label>Password</Form.Label>
+            <Form.Control
+              type="password"
+              placeholder="••••••••"
+              {...form.register('password')}
+              isInvalid={!!form.formState.errors.password}
+            />
+            <Form.Control.Feedback type="invalid">{form.formState.errors.password?.message}</Form.Control.Feedback>
+          </Form.Group>
+
+          <Form.Group className="mb-4">
+            <Form.Label>Confirm Password</Form.Label>
+            <Form.Control
+              type="password"
+              placeholder="••••••••"
+              {...form.register('confirmPassword')}
+              isInvalid={!!form.formState.errors.confirmPassword}
+            />
+            <Form.Control.Feedback type="invalid">
+              {form.formState.errors.confirmPassword?.message}
+            </Form.Control.Feedback>
+          </Form.Group>
+
+          <Button type="submit" variant="primary" className="w-100 mb-3">
+            Sign Up
+          </Button>
+
+          <div className="text-center">
+            <span>Already one of us? </span>
+            <Link to="/login" className="text-decoration-none">
               Log in
             </Link>
           </div>
         </Form>
-      </div>
+      </Container>
     </div>
   )
 }
