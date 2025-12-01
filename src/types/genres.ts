@@ -1,5 +1,5 @@
 export type Genre = {
-    id: string
+    genreId: string
     genreName: string
 }
 

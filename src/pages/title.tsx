@@ -6,6 +6,7 @@ import { Bookmark, Star } from 'lucide-react'
 import { useState } from 'react'
 import Badge from 'react-bootstrap/Badge'
 import Button from 'react-bootstrap/Button'
+import Modal from 'react-bootstrap/Modal'
 import Nav from 'react-bootstrap/Nav'
 import { Link, useNavigate, useParams } from 'react-router'
 
@@ -15,9 +16,28 @@ export default function Title() {
   const { titleId } = useParams()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('details')
+  const [showRatingModal, setShowRatingModal] = useState(false)
+  const [selectedRating, setSelectedRating] = useState<number | null>(null)
+  const [hoveredRating, setHoveredRating] = useState<number | null>(null)
+  const [isRateHovered, setIsRateHovered] = useState(false)
 
   const titleQuery = useTitleQuery(titleId!)
   const titleRatingQuery = useTitleRatingQuery(titleId!)
+
+  const handleCloseModal = () => {
+    setShowRatingModal(false)
+    setHoveredRating(null)
+  }
+
+  const handleStarClick = (rating: number) => {
+    setSelectedRating(rating)
+  }
+
+  const handleRateSubmit = () => {
+    // TODO: Implement rating submission
+    console.log('Rating submitted:', selectedRating)
+    handleCloseModal()
+  }
 
   if (titleQuery.isLoading) {
     return <div>Loading...</div>
@@ -44,7 +64,7 @@ export default function Title() {
             <div className="col-lg-3 col-12">
               <div className="d-flex flex-column gap-3">
                 <div
-                  className="position-relative w-100 rounded bg-secondary overflow-hidden"
+                  className="position-relative bg-secondary rounded w-100 overflow-hidden"
                   style={{ aspectRatio: '2/3' }}
                 >
                   <img
@@ -75,17 +95,30 @@ export default function Title() {
               <div className="d-flex flex-column gap-4">
                 <h1 className="display-4 fw-bold">{title.primaryTitle}</h1>
 
-                <div className="d-flex align-items-center gap-4 flex-wrap">
+                <div className="d-flex flex-wrap align-items-center gap-4">
                   <div className="d-flex align-items-center gap-2">
                     <Star style={{ fill: titleRatingAvg ? 'currentColor' : 'none' }} />
                     <span>{titleRatingAvg}</span>
-                    <span className="small text-muted">({titleRatingNumVotes} Reviews)</span>
+                    <span className="text-muted small">({titleRatingNumVotes} Reviews)</span>
                   </div>
 
                   <div className="d-flex align-items-center gap-2">
                     <span className="small fw-medium">Your Rating:</span>
-                    <div className="d-flex align-items-center gap-1" style={{ cursor: 'pointer' }}>
-                      <Star />
+                    <div
+                      className="d-flex align-items-center gap-1"
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => setShowRatingModal(true)}
+                      onMouseEnter={() => setIsRateHovered(true)}
+                      onMouseLeave={() => setIsRateHovered(false)}
+                    >
+                      <Star
+                        style={{
+                          fill: isRateHovered ? '#ffc107' : 'none',
+                          stroke: '#ffc107',
+                          strokeWidth: 2,
+                          transition: 'fill 0.2s ease',
+                        }}
+                      />
                       <span>Rate</span>
                     </div>
                   </div>
@@ -106,10 +139,14 @@ export default function Title() {
                 {title.people.length > 0 && (
                   <div>
                     <h2 className="mb-3 h5 fw-semibold">Cast & Contributors</h2>
-                    <div className="d-flex gap-2 flex-wrap">
+                    <div className="d-flex flex-wrap gap-2">
                       {title.people.map((person) => (
-                        <Badge key={person.nconst} bg="secondary" className="px-3 py-2">
-                          <Link to={`/people/${person.nconst}`} className="text-decoration-none text-white">
+                        <Badge
+                          key={`${person.nconst}-${person.category}-${person.characterName ?? ''}`}
+                          bg="secondary"
+                          className="px-3 py-2"
+                        >
+                          <Link to={`/people/${person.nconst}`} className="text-white text-decoration-none">
                             {person.fullName}
                             {person.characterName && ` (${person.characterName})`}
                           </Link>
@@ -157,6 +194,60 @@ export default function Title() {
           </div>
         </Container>
       </div>
+
+      <Modal show={showRatingModal} onHide={handleCloseModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Rate this title</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="text-center">
+          <div className="d-flex justify-content-center align-items-center mb-4" style={{ gap: 0 }}>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => {
+              const isFilled = hoveredRating ? star <= hoveredRating : selectedRating !== null && star <= selectedRating
+
+              return (
+                <div
+                  key={star}
+                  style={{
+                    padding: '0.5rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  onMouseEnter={() => setHoveredRating(star)}
+                  onMouseLeave={() => setHoveredRating(null)}
+                  onClick={() => handleStarClick(star)}
+                >
+                  <Star
+                    style={{
+                      width: '2rem',
+                      height: '2rem',
+                      fill: isFilled ? '#ffc107' : 'none',
+                      stroke: '#ffc107',
+                      strokeWidth: 2,
+                      transition: 'fill 0.2s ease',
+                      pointerEvents: 'none',
+                    }}
+                  />
+                </div>
+              )
+            })}
+          </div>
+          {selectedRating && (
+            <p className="text-muted mb-0">
+              You selected {selectedRating} star{selectedRating !== 1 ? 's' : ''}
+            </p>
+          )}
+        </Modal.Body>
+        <Modal.Footer className="justify-content-center">
+          <Button variant="secondary" onClick={handleCloseModal}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleRateSubmit} disabled={selectedRating === null}>
+            Rate
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </>
   )
 }

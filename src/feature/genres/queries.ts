@@ -14,14 +14,14 @@ const fetchGenres = async(): Promise<Genres> => {
 
 export const useGenresQuery = () => {
   const [data, setData] = useState<Genres | null> (null)
-  const [isLoading, setIsloading] = useState(true)
+  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
   
   useEffect(() => {
     let cancelled = false
 
     const loadGenres = async () => {
-      setIsloading(true)
+      setIsLoading(true)
       setError(null)
 
       try {
@@ -33,10 +33,10 @@ export const useGenresQuery = () => {
         if (!cancelled){
           setError(err instanceof Error ? err : new Error("Unknown error"))
         }
-      }
+      } 
       finally {
-        if (!cancelled){
-          setIsloading(false)
+        if (!cancelled) {
+          setIsLoading(false)
         }
       }
     }
@@ -47,7 +47,7 @@ export const useGenresQuery = () => {
       cancelled = true
     }
 
-  })
+  }, [])
 
   return {
     data,

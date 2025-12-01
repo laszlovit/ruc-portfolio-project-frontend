@@ -31,11 +31,11 @@ export default function ExploreGenres() {
   const query = useGenresQuery()
   const genres = query.data?.items || []
 
-  if (query.isFetching) {
+  if (query.isLoading) {
     return (
       <section className="py-5">
         <Container>
-          <h2 className="h3 fw-semibold mb-4">Explore by Genre</h2>
+          <h2 className="mb-4 h3 fw-semibold">Explore by Genre</h2>
           <div className="row g-3">
             <div className="col-md-6 col-lg-4 col-12">
               <SkeletonGenreCard />
@@ -51,17 +51,17 @@ export default function ExploreGenres() {
       </section>
     )
   }
-  if (query.isError) {
+  if (query.error) {
     return <div>Error: {query.error.message}</div>
   }
 
   return (
     <section className="py-5">
       <Container>
-        <h2 className="h3 fw-semibold mb-4">Explore by Genre</h2>
+        <h2 className="mb-4 h3 fw-semibold">Explore by Genre</h2>
         <div className="row g-3">
           {genres.map((genre) => (
-            <div key={genre.id} className="col-md-6 col-lg-4 col-12">
+            <div key={genre.genreId} className="col-md-6 col-lg-4 col-12">
               <GenreCard genre={genre} />
             </div>
           ))}
