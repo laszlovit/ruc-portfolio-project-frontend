@@ -123,7 +123,7 @@ export function SignUpPage() {
             </Form.Control.Feedback>
           </Form.Group>
 
-          <Button type="submit" variant="primary" className="w-100 mb-3">
+          <Button type="submit" variant="primary" className="w-100 mb-3 text-white">
             Sign Up
           </Button>
 

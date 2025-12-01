@@ -101,7 +101,7 @@ export function LoginPage() {
             />
           </Form.Group>
 
-          <Button type="submit" variant="primary" className="w-100 mb-3">
+          <Button type="submit" variant="primary" className="w-100 mb-3 text-white">
             Log in
           </Button>
 
