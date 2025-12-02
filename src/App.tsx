@@ -2,7 +2,7 @@ import { Link, Route, Routes } from 'react-router'
 import { SignUpPage } from './pages/sign-up'
 import { ProtectedRoute } from './routes/protected-route'
 import { LoginPage } from './pages/LogIn'
-import { ProfilePage } from './pages/Profile'
+import { ProfilePage } from './pages/profile'
 
 function App() {
   return (
