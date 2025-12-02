@@ -1,4 +1,4 @@
-import { ProfileHero } from "../components/ProfileHero";
+import { ProfileHero } from "../components/profile-hero";
 import { useAuth } from "../contexts/auth-context";
 
 export function ProfilePage() {
