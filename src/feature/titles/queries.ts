@@ -1,7 +1,15 @@
-import type { Title } from "@/types/titles"
+import type { Title, Titles } from "@/types/titles"
 import { useEffect, useState } from "react"
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL
+
+const fetchTitles = async (): Promise<Titles> => {
+  const response = await fetch(`${BASE_URL}/titles`)
+  if (!response.ok){
+    throw new Error(`Failed to fetch titles: ${response.statusText}`)
+  }
+  return response.json()
+}
 
 const fetchTitle = async (tconst: string): Promise<Title> => {
   const response = await fetch(`${BASE_URL}/titles/${tconst}`)
@@ -9,6 +17,48 @@ const fetchTitle = async (tconst: string): Promise<Title> => {
     throw new Error(`Failed to fetch title: ${response.statusText}`)
   }
   return response.json()
+}
+
+export const useTitlesQuery = () => {
+  const [data, setData] = useState<Titles | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadTitles = async () => {
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        if (!cancelled)
+        {
+          const result = await fetchTitles()
+          setData(result)
+        }
+      } catch (err) {
+        if (!cancelled){
+          setError(err instanceof Error ? err : new Error("Unkown error"))
+        }
+      }
+      finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadTitles()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  return {
+    data,
+    isLoading,
+    error
+  }
 }
 
 export const useTitleQuery = (tconst: string) => {
