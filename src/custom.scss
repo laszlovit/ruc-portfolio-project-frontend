@@ -4,14 +4,17 @@ $body-color: #171A1F;
 
 $text-light: #565D6D;
 $text-white: #FFFFFF;
-$background-gray: #565D6D;
+$background-gray: #fefefe;
+$background-avatar: #D33C80FF;
 
 $theme-colors: (
   "primary": $primary,
   "text": $body-color,
   "text-light": $text-light,
   "text-white": $text-white,
-  "background-gray": $background-gray
+  "background-gray": $background-gray,
+  "background-avatar": $background-avatar
+
 );
 
 // then:

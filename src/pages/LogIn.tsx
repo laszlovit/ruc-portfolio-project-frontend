@@ -1,11 +1,11 @@
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/contexts/auth-context'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { Button, Container, Form } from 'react-bootstrap'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router'
 import * as z from 'zod'
-import { FormRootError } from '../components/FormRootError'
+import { FormRootError } from '../components/form-root-error'
 import { Logo } from '../components/Logo'
 
 const formSchema = z.object({
@@ -28,6 +28,7 @@ export function LoginPage() {
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     try {
+      console.log(data);
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/users/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -46,7 +47,6 @@ export function LoginPage() {
       }
 
       const result = await response.json()
-      console.log('Logged in:', result)
       login(result.username, result.token, rememberMe)
       navigate('/')
     } catch (err) {
@@ -107,7 +107,7 @@ export function LoginPage() {
 
           <div className="text-center">
             <span>Don't have an account? </span>
-            <Link to="/signup" className="text-decoration-none">
+            <Link to="/sign-up" className="text-decoration-none">
               Sign Up
             </Link>
           </div>
