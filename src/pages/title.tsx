@@ -1,4 +1,5 @@
 import { Container } from '@/components/container'
+import LoadingSpinner from '@/components/loading-spinner'
 import { useTitleRatingQuery } from '@/feature/ratings/queries'
 import { useTitleQuery } from '@/feature/titles/queries'
 import { formatRuntime } from '@/lib/utils'
@@ -13,7 +14,7 @@ import { Link, useNavigate, useParams } from 'react-router'
 // TODO: User rating and bookmarking needs to be implemented once auth flow is ready
 
 export default function Title() {
-  const { titleId } = useParams()
+  const { tconst } = useParams()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('details')
   const [showRatingModal, setShowRatingModal] = useState(false)
@@ -21,8 +22,8 @@ export default function Title() {
   const [hoveredRating, setHoveredRating] = useState<number | null>(null)
   const [isRateHovered, setIsRateHovered] = useState(false)
 
-  const titleQuery = useTitleQuery(titleId!)
-  const titleRatingQuery = useTitleRatingQuery(titleId!)
+  const titleQuery = useTitleQuery(tconst!)
+  const titleRatingQuery = useTitleRatingQuery(tconst!)
 
   const handleCloseModal = () => {
     setShowRatingModal(false)
@@ -40,14 +41,14 @@ export default function Title() {
   }
 
   if (titleQuery.isLoading) {
-    return <div>Loading...</div>
+    return <LoadingSpinner />
   }
 
   const title = titleQuery.data
 
   if (!title) {
     navigate('/not-found')
-    return
+    return null
   }
 
   const placeholderPosterUrl = `https://placehold.co/400x600?text=${encodeURIComponent(title.primaryTitle)}`
@@ -143,7 +144,7 @@ export default function Title() {
                       {title.people.map((person) => (
                         <Badge
                           key={`${person.nconst}-${person.category}-${person.characterName ?? ''}`}
-                          bg="secondary"
+                          bg="background-gray"
                           className="px-3 py-2"
                         >
                           <Link to={`/people/${person.nconst}`} className="text-white text-decoration-none">
@@ -200,7 +201,7 @@ export default function Title() {
           <Modal.Title>Rate this title</Modal.Title>
         </Modal.Header>
         <Modal.Body className="text-center">
-          <div className="d-flex justify-content-center align-items-center mb-4" style={{ gap: 0 }}>
+          <div className="d-flex align-items-center justify-content-center mb-4" style={{ gap: 0 }}>
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => {
               const isFilled = hoveredRating ? star <= hoveredRating : selectedRating !== null && star <= selectedRating
 
@@ -234,7 +235,7 @@ export default function Title() {
             })}
           </div>
           {selectedRating && (
-            <p className="text-muted mb-0">
+            <p className="mb-0 text-muted">
               You selected {selectedRating} star{selectedRating !== 1 ? 's' : ''}
             </p>
           )}

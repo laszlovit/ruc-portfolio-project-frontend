@@ -13,7 +13,7 @@ export function Logo({ size = 'md' }: LogoProps) {
 
   return (
     <div className="d-flex align-items-center gap-2">
-      <img style={styles.logo} src="./movie_surf_logo.png" alt="MovieSurf Logo" />
+      <img style={styles.logo} src="/movie_surf_logo.png" alt="MovieSurf Logo" />
       <p className={`${styles.text} fw-semibold text-primary mb-0`}>MovieSurf</p>
     </div>
   )

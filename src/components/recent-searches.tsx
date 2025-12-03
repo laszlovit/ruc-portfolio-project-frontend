@@ -1,5 +1,5 @@
-import { Link } from 'react-router'
 import Badge from 'react-bootstrap/Badge'
+import { Link } from 'react-router'
 import { Container } from './container'
 
 const recentSearches = [
@@ -19,7 +19,7 @@ export default function RecentSearches() {
           {recentSearches.map((search, index) => (
             <Badge
               key={index}
-              bg="secondary"
+              bg="background-gray"
               as={Link}
               to="#"
               style={{ cursor: 'pointer' }}
@@ -33,4 +33,3 @@ export default function RecentSearches() {
     </section>
   )
 }
-

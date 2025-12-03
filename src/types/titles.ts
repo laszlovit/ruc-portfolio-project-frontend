@@ -1,4 +1,4 @@
-import type { Person } from "./persons"
+import type {TitlePerson } from "./persons"
 
 export type Title = {
     tconst: string
@@ -14,7 +14,7 @@ export type Title = {
     award: string | null,
     genres: string[]
     countries: string[]
-    people: Person[]
+    people: TitlePerson[]
 }
 
 export type Titles = {

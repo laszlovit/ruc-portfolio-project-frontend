@@ -9,7 +9,7 @@ export default function HomeHero() {
   return (
     <section className="py-5">
       <Container>
-        <div className="bg-light p-lg-5 rounded p-4">
+        <div className="p-lg-5 rounded p-4">
           <div className="mx-auto text-center" style={{ maxWidth: '48rem' }}>
             <h1 className="display-4 fw-bold mb-4">Discover Your Next Obsession</h1>
             <p className="mx-auto mb-4 text-muted" style={{ maxWidth: '32rem' }}>
