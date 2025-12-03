@@ -1,10 +1,11 @@
 import { Film, Menu, Tv, User, Users } from 'lucide-react'
-import { Link, NavLink } from 'react-router'
+import { useState } from 'react'
 import Button from 'react-bootstrap/Button'
 import Nav from 'react-bootstrap/Nav'
 import Offcanvas from 'react-bootstrap/Offcanvas'
+import { Link, NavLink } from 'react-router'
 import { Container } from './container'
-import { useState } from 'react'
+import { Logo } from './logo'
 
 // Hardcoded auth state - will be replaced with real auth later
 const IS_LOGGED_IN = true
@@ -19,7 +20,10 @@ const navLinks = [
 
 function Avatar({ src, alt, fallback }: { src?: string; alt: string; fallback: string }) {
   return (
-    <div className="rounded-circle overflow-hidden bg-secondary d-flex align-items-center justify-content-center" style={{ width: '2.5rem', height: '2.5rem' }}>
+    <div
+      className="rounded-circle overflow-hidden bg-secondary d-flex align-items-center justify-content-center"
+      style={{ width: '2.5rem', height: '2.5rem' }}
+    >
       {src ? (
         <img src={src} alt={alt} className="w-100 h-100" style={{ objectFit: 'cover' }} />
       ) : (
@@ -40,12 +44,7 @@ export default function Navbar() {
       <Container>
         <div className="d-flex align-items-center justify-content-between" style={{ height: '4rem' }}>
           <Link to="/" className="text-decoration-none">
-            <div className="d-flex align-items-center gap-2">
-              <div className="d-flex align-items-center justify-content-center rounded bg-primary text-white" style={{ width: '2rem', height: '2rem' }}>
-                <span className="small fw-bold">M</span>
-              </div>
-              <span className="h5 fw-bold mb-0">MovieSurf</span>
-            </div>
+            <Logo size="sm" />
           </Link>
           <div className="d-none d-md-flex">
             <Nav as="ul" className="d-flex align-items-center gap-3">
@@ -90,7 +89,13 @@ export default function Navbar() {
               <div className="mt-auto border-top pt-4">
                 {IS_LOGGED_IN ? (
                   <div className="d-flex align-items-center gap-3 px-3 py-2">
-                    <Avatar src={USER_AVATAR} alt={USER_NAME} fallback={USER_NAME.split(' ').map((n) => n[0]).join('')} />
+                    <Avatar
+                      src={USER_AVATAR}
+                      alt={USER_NAME}
+                      fallback={USER_NAME.split(' ')
+                        .map((n) => n[0])
+                        .join('')}
+                    />
                     <span className="small fw-medium">{USER_NAME}</span>
                   </div>
                 ) : (
@@ -105,7 +110,13 @@ export default function Navbar() {
           <div className="d-none d-md-flex align-items-center gap-3">
             {IS_LOGGED_IN ? (
               <div className="d-flex align-items-center gap-2">
-                <Avatar src={USER_AVATAR} alt={USER_NAME} fallback={USER_NAME.split(' ').map((n) => n[0]).join('')} />
+                <Avatar
+                  src={USER_AVATAR}
+                  alt={USER_NAME}
+                  fallback={USER_NAME.split(' ')
+                    .map((n) => n[0])
+                    .join('')}
+                />
                 <span className="small fw-medium">{USER_NAME}</span>
               </div>
             ) : (
