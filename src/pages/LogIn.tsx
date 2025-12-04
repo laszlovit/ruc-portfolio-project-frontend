@@ -59,12 +59,12 @@ export function LoginPage() {
     <div className="d-flex flex-column align-items-center justify-content-center min-vh-100">
       <div className="mb-5 text-center">
         <Logo size="lg" />
-        <p className="fw-semibold mt-2">Ride the wave of cinema</p>
+        <p className="mt-2 fw-semibold">Ride the wave of cinema</p>
       </div>
 
       <Container style={{ maxWidth: '400px' }}>
-        <h1 className="mb-2 fw-bold text-center">Welcome Back!</h1>
-        <h4 className="mb-4 fw-semibold text-center">Log in</h4>
+        <h1 className="mb-2 text-center fw-bold">Welcome Back!</h1>
+        <h4 className="mb-4 text-center fw-semibold">Log in</h4>
 
         <Form onSubmit={form.handleSubmit(onSubmit)}>
           <FormRootError form={form} />
@@ -101,7 +101,7 @@ export function LoginPage() {
             />
           </Form.Group>
 
-          <Button type="submit" variant="primary" className="w-100 mb-3 text-white">
+          <Button type="submit" variant="primary" className="mb-3 w-100 text-white">
             Log in
           </Button>
 

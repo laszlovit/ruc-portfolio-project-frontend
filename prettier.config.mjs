@@ -4,9 +4,7 @@ const config = {
   singleQuote: true,
   printWidth: 120,
   trailingComma: 'es5',
-  tailwindFunctions: ['clsx', 'tw'],
-  plugins: ['prettier-plugin-organize-imports', 'prettier-plugin-tailwindcss'],
-  tailwindStylesheet: './src/styles.css',
+  plugins: ['prettier-plugin-organize-imports'],
 }
 
 export default config

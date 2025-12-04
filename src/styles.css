@@ -57,8 +57,38 @@ body {
   color: var(--foreground);
 }
 
+.talent-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
 
+@media (min-width: 768px) {
+  .talent-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
 
+@media (min-width: 992px) {
+  .talent-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
 
+.popular-picks-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
 
+@media (min-width: 768px) {
+  .popular-picks-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
 
+@media (min-width: 992px) {
+  .popular-picks-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
