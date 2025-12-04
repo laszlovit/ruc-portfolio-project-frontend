@@ -1,25 +1,25 @@
-interface SignUpRequest {
+export interface SignUpRequest {
   username: string
   name: string
   email: string
   password: string
 }
 
-interface LoginRequest {
+export interface LoginRequest {
   username: string
   password: string
 }
 
-interface LoginResponse {
+export interface AuthResponse {
   username: string
-  token: string
+  email: string
 }
 
 export interface AuthContext {
-  user: string | null
-  token: string | null
-  signup: (username: string, token: string) => void
-  login: (username: string, token: string, rememberMe: boolean) => void
-  logout: () => void
+  user: AuthResponse | null
+  isLoading: boolean  // Add this
+  signup: (data: SignUpRequest) => Promise<void>
+  login: (data: LoginRequest) => Promise<void>
+  logout: () => Promise<void>
   isAuthenticated: boolean
 }

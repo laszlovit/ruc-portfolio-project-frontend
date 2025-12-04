@@ -1,6 +1,6 @@
 import { useAuth } from '@/contexts/auth-context'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Button, Container, Form } from 'react-bootstrap'
+import { Button, Container, Form, Spinner } from 'react-bootstrap'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router'
 import * as z from 'zod'
@@ -9,6 +9,7 @@ import { Logo } from '../components/logo'
 
 const formSchema = z
   .object({
+    name: z.string().min(1, 'Please enter your name'),
     username: z.string().min(1, 'Please enter a username'),
     email: z.string().email('Invalid email address'),
     password: z.string().min(1, 'Please enter a password'),
@@ -20,12 +21,13 @@ const formSchema = z
   })
 
 export function SignUpPage() {
-  const { signup } = useAuth()
+  const { signup, isLoading } = useAuth()
   const navigate = useNavigate()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      name: '',
       username: '',
       email: '',
       password: '',
@@ -35,32 +37,26 @@ export function SignUpPage() {
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/users/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: data.username,
-          email: data.email,
-          password: data.password,
-        }),
+      await signup({
+        username: data.username,
+        name: data.name,
+        email: data.email,
+        password: data.password
       })
 
-      if (!response.ok) {
-        console.error('Signup failed', await response.text())
-        const errorData = await response.json().catch(() => ({ message: 'Sign up failed' }))
-        form.setError('root', { message: errorData.message || 'An unexpected error occurred' })
-        return
-      }
-
-      const result = await response.json()
-      console.log('Signed up:', result)
-      console.log('Logged in:', result)
-      signup(result.username, result.token)
       navigate('/')
     } catch (err) {
-      console.error('Network error', err)
-      form.setError('root', { message: 'A network error occured' })
+      console.error('Signup error', err)
+      form.setError('root', { message: 'Signup failed. Please try again.' })
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="d-flex align-items-center justify-content-center min-vh-100">
+        <Spinner animation="border" />
+      </div>
+    )
   }
 
   return (
@@ -78,12 +74,25 @@ export function SignUpPage() {
           <FormRootError form={form} />
 
           <Form.Group className="mb-4">
+            <Form.Label>Name</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="your full name"
+              {...form.register('name')}
+              isInvalid={!!form.formState.errors.name}
+              disabled={form.formState.isSubmitting}
+            />
+            <Form.Control.Feedback type="invalid">{form.formState.errors.name?.message}</Form.Control.Feedback>
+          </Form.Group>
+
+          <Form.Group className="mb-4">
             <Form.Label>Username</Form.Label>
             <Form.Control
               type="text"
               placeholder="your username"
               {...form.register('username')}
               isInvalid={!!form.formState.errors.username}
+              disabled={form.formState.isSubmitting}
             />
             <Form.Control.Feedback type="invalid">{form.formState.errors.username?.message}</Form.Control.Feedback>
           </Form.Group>
@@ -95,6 +104,7 @@ export function SignUpPage() {
               placeholder="your@email.com"
               {...form.register('email')}
               isInvalid={!!form.formState.errors.email}
+              disabled={form.formState.isSubmitting}
             />
             <Form.Control.Feedback type="invalid">{form.formState.errors.email?.message}</Form.Control.Feedback>
           </Form.Group>
@@ -106,6 +116,7 @@ export function SignUpPage() {
               placeholder="••••••••"
               {...form.register('password')}
               isInvalid={!!form.formState.errors.password}
+              disabled={form.formState.isSubmitting}
             />
             <Form.Control.Feedback type="invalid">{form.formState.errors.password?.message}</Form.Control.Feedback>
           </Form.Group>
@@ -117,14 +128,27 @@ export function SignUpPage() {
               placeholder="••••••••"
               {...form.register('confirmPassword')}
               isInvalid={!!form.formState.errors.confirmPassword}
+              disabled={form.formState.isSubmitting}
             />
             <Form.Control.Feedback type="invalid">
               {form.formState.errors.confirmPassword?.message}
             </Form.Control.Feedback>
           </Form.Group>
 
-          <Button type="submit" variant="primary" className="w-100 mb-3 text-white">
-            Sign Up
+          <Button
+            type="submit"
+            variant="primary"
+            className="w-100 mb-3 text-white"
+            disabled={form.formState.isSubmitting}
+          >
+            {form.formState.isSubmitting ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-2" />
+                Creating account...
+              </>
+            ) : (
+              'Sign Up'
+            )}
           </Button>
 
           <div className="text-center">

@@ -1,7 +1,6 @@
 import { useAuth } from '@/contexts/auth-context'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
-import { Button, Container, Form } from 'react-bootstrap'
+import { Button, Container, Form, Spinner } from 'react-bootstrap'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router'
 import * as z from 'zod'
@@ -14,9 +13,8 @@ const formSchema = z.object({
 })
 
 export function LoginPage() {
-  const { login } = useAuth()
+  const { login, isLoading } = useAuth()
   const navigate = useNavigate()
-  const [rememberMe, setRememberMe] = useState<boolean>(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -28,31 +26,24 @@ export function LoginPage() {
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/users/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      await login({
+        username: data.username,
+        password: data.password
       })
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Login failed' }))
-
-        if (response.status === 401) {
-          form.setError('root', { message: errorData.message || 'Invalid username or password' })
-        } else {
-          form.setError('root', { message: 'An unexpected error occurred' })
-        }
-        return
-      }
-
-      const result = await response.json()
-      console.log('Logged in:', result)
-      login(result.username, result.token, rememberMe)
       navigate('/')
     } catch (err) {
-      console.error('Network error', err)
-      form.setError('root', { message: 'A network error occured' })
+      console.error('Login error', err)
+      form.setError('root', { message: 'Invalid username or password' })
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="d-flex align-items-center justify-content-center min-vh-100">
+        <Spinner animation="border" />
+      </div>
+    )
   }
 
   return (
@@ -76,6 +67,7 @@ export function LoginPage() {
               placeholder="your username"
               {...form.register('username')}
               isInvalid={!!form.formState.errors.username}
+              disabled={form.formState.isSubmitting}
             />
             <Form.Control.Feedback type="invalid">{form.formState.errors.username?.message}</Form.Control.Feedback>
           </Form.Group>
@@ -87,22 +79,25 @@ export function LoginPage() {
               placeholder="••••••••"
               {...form.register('password')}
               isInvalid={!!form.formState.errors.password}
+              disabled={form.formState.isSubmitting}
             />
             <Form.Control.Feedback type="invalid">{form.formState.errors.password?.message}</Form.Control.Feedback>
           </Form.Group>
 
-          <Form.Group className="mb-4">
-            <Form.Check
-              type="checkbox"
-              id="remember"
-              label="Remember me"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-            />
-          </Form.Group>
-
-          <Button type="submit" variant="primary" className="mb-3 w-100 text-white">
-            Log in
+          <Button
+            type="submit"
+            variant="primary"
+            className="mb-3 w-100 text-white"
+            disabled={form.formState.isSubmitting}
+          >
+            {form.formState.isSubmitting ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-2" />
+                Logging in...
+              </>
+            ) : (
+              'Log in'
+            )}
           </Button>
 
           <div className="text-center">
