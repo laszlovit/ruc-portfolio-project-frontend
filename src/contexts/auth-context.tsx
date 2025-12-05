@@ -12,6 +12,8 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/users`;
+
   const [user, setUser] = useState<AuthResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -20,7 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const checkAuth = async () => {
       try {
-        const response = await fetch('http://localhost:5082/users/me', {
+        const response = await fetch(`${BASE_URL}/me`, {
           credentials: 'include'
         })
 
@@ -50,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = async (data: LoginRequest) => {
-    const response = await fetch('http://localhost:5082/users/login', {
+    const response = await fetch(`${BASE_URL}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -66,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signup = async (data: SignUpRequest) => {
-    const response = await fetch('http://localhost:5082/users/signup', {
+    const response = await fetch(`${BASE_URL}/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -83,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await fetch('http://localhost:5082/users/logout', {
+      await fetch(`${BASE_URL}/logout`, {
         method: 'POST',
         credentials: 'include'
       })

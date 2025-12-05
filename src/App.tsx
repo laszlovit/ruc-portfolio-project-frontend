@@ -6,7 +6,6 @@ import NotFound from './pages/not-found'
 import Person from './pages/person'
 import { SignUpPage } from './pages/sign-up'
 import Title from './pages/title'
-import { ProtectedRoute } from './routes/protected-route'
 
 function App() {
   return (
@@ -15,13 +14,9 @@ function App() {
         {/* Public  */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
-
-        {/* Protected  */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/titles/:tconst" element={<Title />} />
-          <Route path="/people/:nconst" element={<Person />} />
-        </Route>
+        <Route path="/" element={<Home />} />
+        <Route path="/titles/:tconst" element={<Title />} />
+        <Route path="/people/:nconst" element={<Person />} />
 
         {/* 404  */}
         <Route path="*" element={<NotFound />} />
