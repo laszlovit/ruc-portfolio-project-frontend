@@ -21,7 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const checkAuth = async () => {
       try {
         const response = await fetch('http://localhost:5082/users/me', {
-          credentials: 'include'
+          credentials: 'include',
         })
 
         if (response.ok && !cancelled) {
@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ username: data.username, password: data.password })
+      body: JSON.stringify({ username: data.username, password: data.password }),
     })
 
     if (!response.ok) {
@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     })
 
     if (!response.ok) {
@@ -85,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await fetch('http://localhost:5082/users/logout', {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
       })
     } catch (error) {
       console.error('Logout failed:', error)
@@ -94,10 +94,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const updateUser = (userData: AuthResponse) => {
+    setUser(userData)
+  }
+
   const isAuthenticated = !!user
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, signup, login, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, isLoading, signup, login, logout, isAuthenticated, updateUser }}>
       {children}
     </AuthContext.Provider>
   )

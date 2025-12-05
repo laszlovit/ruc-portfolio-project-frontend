@@ -22,4 +22,5 @@ export interface AuthContext {
   login: (data: LoginRequest) => Promise<void>
   logout: () => Promise<void>
   isAuthenticated: boolean
+  updateUser: (userData: AuthResponse) => void
 }
