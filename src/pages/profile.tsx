@@ -2,7 +2,7 @@ import { Container as CustomContainer } from '@/components/container'
 import { useAuth } from '@/contexts/auth-context'
 import { useToast } from '@/contexts/toast-context'
 import { useBookmarkedTitlesQuery, useRatedTitlesQuery, useUserQueries } from '@/feature/users/queries'
-import { Bookmark, Calendar, Star } from 'lucide-react'
+import { Bookmark, Calendar, Star, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import Button from 'react-bootstrap/Button'
 import Card from 'react-bootstrap/Card'
@@ -61,11 +61,14 @@ export default function Profile() {
   const [username, setUsername] = useState<string>(() => user?.username ?? '')
   const [activeTab, setActiveTab] = useState<string>('profile-info')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const { updateUserName, deleteUser } = useUserQueries()
+  const [showDeleteBookmarkModal, setShowDeleteBookmarkModal] = useState(false)
+  const [showDeleteRatingModal, setShowDeleteRatingModal] = useState(false)
+  const [itemToDelete, setItemToDelete] = useState<{ tconst: string; title: string } | null>(null)
+  const { updateUserName, deleteUser, deleteTitleBookmark, deleteTitleRating } = useUserQueries()
   const { showToast } = useToast()
 
-  const { data: bookmarkedTitlesData } = useBookmarkedTitlesQuery()
-  const { data: ratedTitlesData } = useRatedTitlesQuery()
+  const { data: bookmarkedTitlesData, bookmarkedTitles, setBookmarkedTitles } = useBookmarkedTitlesQuery()
+  const { data: ratedTitlesData, ratedTitles, setRatedTitles } = useRatedTitlesQuery()
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -100,6 +103,50 @@ export default function Profile() {
     }
   }
 
+  const handleDeleteBookmarkClick = (e: React.MouseEvent, tconst: string, title: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setItemToDelete({ tconst, title })
+    setShowDeleteBookmarkModal(true)
+  }
+
+  const handleDeleteRatingClick = (e: React.MouseEvent, tconst: string, title: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setItemToDelete({ tconst, title })
+    setShowDeleteRatingModal(true)
+  }
+
+  const handleDeleteBookmarkCancel = () => {
+    setShowDeleteBookmarkModal(false)
+    setItemToDelete(null)
+  }
+
+  const handleDeleteRatingCancel = () => {
+    setShowDeleteRatingModal(false)
+    setItemToDelete(null)
+  }
+
+  async function handleDeleteBookmarkConfirm() {
+    if (itemToDelete) {
+      await deleteTitleBookmark(itemToDelete?.tconst)
+      setBookmarkedTitles((prev) => prev!.filter((i) => i.tconst !== itemToDelete.tconst))
+      setItemToDelete(null)
+      setShowDeleteBookmarkModal(false)
+      showToast('Succesfully deleted title bookmark', 'success')
+    }
+  }
+
+  async function handleDeleteRatingConfirm() {
+    if (itemToDelete) {
+      await deleteTitleRating(itemToDelete?.tconst)
+      setRatedTitles((prev) => prev!.filter((i) => i.tconst !== itemToDelete.tconst))
+      setItemToDelete(null)
+      setShowDeleteRatingModal(false)
+      showToast('Succesfully deleted title rating', 'success')
+    }
+  }
+
   return (
     <div className="py-5">
       <CustomContainer>
@@ -127,6 +174,44 @@ export default function Profile() {
             </Button>
             <Button variant="danger" className="text-white" onClick={handleDeleteConfirm}>
               Delete Account
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        {/* Delete Bookmark Confirmation Modal */}
+        <Modal show={showDeleteBookmarkModal} onHide={handleDeleteBookmarkCancel} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>Remove Bookmark</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p>Are you sure you want to remove this bookmark?</p>
+            {itemToDelete && <p className="mb-0 fw-semibold">&quot;{itemToDelete.title}&quot;</p>}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleDeleteBookmarkCancel}>
+              Cancel
+            </Button>
+            <Button variant="danger" className="text-white" onClick={handleDeleteBookmarkConfirm}>
+              Remove Bookmark
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        {/* Delete Rating Confirmation Modal */}
+        <Modal show={showDeleteRatingModal} onHide={handleDeleteRatingCancel} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>Remove Rating</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p>Are you sure you want to remove this rating?</p>
+            {itemToDelete && <p className="mb-0 fw-semibold">&quot;{itemToDelete.title}&quot;</p>}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleDeleteRatingCancel}>
+              Cancel
+            </Button>
+            <Button variant="danger" className="text-white" onClick={handleDeleteRatingConfirm}>
+              Remove Rating
             </Button>
           </Modal.Footer>
         </Modal>
@@ -239,13 +324,30 @@ export default function Profile() {
             </Tab.Pane>
 
             <Tab.Pane eventKey="bookmarks">
-              {bookmarkedTitlesData?.items && bookmarkedTitlesData.items.length > 0 ? (
-                <div>
-                  {bookmarkedTitlesData.items.map((bt) => (
-                    <Link key={bt.tconst} to={`/titles/${bt.tconst}`}>
-                      <p>{bt.primaryTitle}</p>
-                      <p>{bt.bookmarkDate.toString()}</p>
-                    </Link>
+              {bookmarkedTitles && bookmarkedTitles.length > 0 ? (
+                <div className="d-flex flex-column gap-3">
+                  {bookmarkedTitles.map((bt) => (
+                    <Card key={bt.tconst} as={Link} to={`/titles/${bt.tconst}`} className="text-decoration-none">
+                      <Card.Body className="d-flex align-items-center justify-content-between">
+                        <div className="flex-grow-1">
+                          <Card.Title className="mb-1 h6">{bt.primaryTitle}</Card.Title>
+                          <Card.Text className="mb-0 text-muted small">
+                            Bookmarked on {new Date(bt.bookmarkDate).toLocaleDateString()}
+                          </Card.Text>
+                        </div>
+                        <div className="d-flex align-items-center gap-3">
+                          <Bookmark style={{ width: '1.5rem', height: '1.5rem' }} className="text-primary" />
+                          <Button
+                            variant="link"
+                            className="p-0 text-danger"
+                            onClick={(e) => handleDeleteBookmarkClick(e, bt.tconst, bt.primaryTitle)}
+                            style={{ minWidth: 'auto' }}
+                          >
+                            <Trash2 style={{ width: '1.25rem', height: '1.25rem' }} />
+                          </Button>
+                        </div>
+                      </Card.Body>
+                    </Card>
                   ))}
                 </div>
               ) : (
@@ -257,13 +359,36 @@ export default function Profile() {
             </Tab.Pane>
 
             <Tab.Pane eventKey="ratings">
-              {ratedTitlesData?.items && ratedTitlesData.items.length > 0 ? (
-                <div>
-                  {ratedTitlesData.items.map((rt) => (
-                    <Link key={rt.tconst} to={`/titles/${rt.tconst}`}>
-                      <p>{rt.primaryTitle}</p>
-                      <p>{rt.rating}</p>
-                    </Link>
+              {ratedTitles && ratedTitles.length > 0 ? (
+                <div className="d-flex flex-column gap-3">
+                  {ratedTitles.map((rt) => (
+                    <Card key={rt.tconst} as={Link} to={`/titles/${rt.tconst}`} className="text-decoration-none">
+                      <Card.Body className="d-flex align-items-center justify-content-between">
+                        <div className="flex-grow-1">
+                          <Card.Title className="mb-1 h6">{rt.primaryTitle}</Card.Title>
+                          <Card.Text className="mb-0 text-muted small">
+                            Rated on {new Date(rt.ratingDate).toLocaleDateString()}
+                          </Card.Text>
+                        </div>
+                        <div className="d-flex align-items-center gap-3">
+                          <div className="d-flex align-items-center gap-1">
+                            <Star
+                              style={{ width: '1.25rem', height: '1.25rem', fill: 'currentColor' }}
+                              className="text-warning"
+                            />
+                            <span className="fw-semibold">{rt.rating}</span>
+                          </div>
+                          <Button
+                            variant="link"
+                            className="p-0 text-danger"
+                            onClick={(e) => handleDeleteRatingClick(e, rt.tconst, rt.primaryTitle)}
+                            style={{ minWidth: 'auto' }}
+                          >
+                            <Trash2 style={{ width: '1.25rem', height: '1.25rem' }} />
+                          </Button>
+                        </div>
+                      </Card.Body>
+                    </Card>
                   ))}
                 </div>
               ) : (
