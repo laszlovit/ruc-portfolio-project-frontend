@@ -1,7 +1,9 @@
 import { Container } from '@/components/container'
 import LoadingSpinner from '@/components/loading-spinner'
+import { useToast } from '@/contexts/toast-context'
 import { useTitleRatingQuery } from '@/feature/ratings/queries'
 import { useTitleQuery } from '@/feature/titles/queries'
+import { useUserQueries } from '@/feature/users/queries'
 import { formatRuntime } from '@/lib/utils'
 import { Bookmark, Star } from 'lucide-react'
 import { useState } from 'react'
@@ -11,7 +13,7 @@ import Modal from 'react-bootstrap/Modal'
 import Nav from 'react-bootstrap/Nav'
 import { Link, useNavigate, useParams } from 'react-router'
 
-// TODO: User rating and bookmarking needs to be implemented once auth flow is ready
+// TODO: User rating need to be implemented once auth flow is ready
 
 export default function Title() {
   const { tconst } = useParams()
@@ -22,8 +24,11 @@ export default function Title() {
   const [hoveredRating, setHoveredRating] = useState<number | null>(null)
   const [isRateHovered, setIsRateHovered] = useState(false)
 
-  const titleQuery = useTitleQuery(tconst!)
+  const { data: title, isLoading, isBookmarked, setIsBookmarked } = useTitleQuery(tconst!)
   const titleRatingQuery = useTitleRatingQuery(tconst!)
+  const { showToast } = useToast()
+
+  const { createTitleBookmark, deleteTitleBookmark } = useUserQueries()
 
   const handleCloseModal = () => {
     setShowRatingModal(false)
@@ -40,11 +45,21 @@ export default function Title() {
     handleCloseModal()
   }
 
-  if (titleQuery.isLoading) {
-    return <LoadingSpinner />
+  const handleToggleBookmark = async (tconst: string) => {
+    if (isBookmarked) {
+      await deleteTitleBookmark(tconst)
+      showToast('Bookmark removed successfully', 'success')
+    } else {
+      await createTitleBookmark(tconst)
+      showToast('Bookmark added successfully', 'success')
+    }
+
+    setIsBookmarked(!isBookmarked)
   }
 
-  const title = titleQuery.data
+  if (isLoading) {
+    return <LoadingSpinner />
+  }
 
   if (!title) {
     navigate('/not-found')
@@ -124,8 +139,8 @@ export default function Title() {
                     </div>
                   </div>
 
-                  <Button variant="outline" size="sm">
-                    <Bookmark className="me-2" style={{ width: '1rem', height: '1rem' }} />
+                  <Button onClick={() => handleToggleBookmark(title.tconst)} variant="outline" size="sm">
+                    <Bookmark className="me-2" style={{ fill: isBookmarked ? '#636AE8' : 'none' }} />
                     Bookmark
                   </Button>
                 </div>

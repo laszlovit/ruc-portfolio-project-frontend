@@ -3,6 +3,7 @@ import type { AuthContext, AuthResponse, LoginRequest, SignUpRequest } from '../
 
 const AuthContext = createContext<AuthContext | undefined>(undefined)
 
+/* eslint-disable react-refresh/only-export-components */
 export function useAuth() {
   const context = useContext(AuthContext)
   if (!context) {

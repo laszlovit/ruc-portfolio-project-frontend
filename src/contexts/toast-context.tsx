@@ -30,6 +30,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return <ToastContext.Provider value={{ showToast, toasts, removeToast }}>{children}</ToastContext.Provider>
 }
 
+/* eslint-disable react-refresh/only-export-components */
 export function useToast() {
   const context = useContext(ToastContext)
   if (context === undefined) {

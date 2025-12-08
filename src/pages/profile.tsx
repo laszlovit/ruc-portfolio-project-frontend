@@ -1,7 +1,7 @@
 import { Container as CustomContainer } from '@/components/container'
 import { useAuth } from '@/contexts/auth-context'
 import { useToast } from '@/contexts/toast-context'
-import { useUserQueries } from '@/feature/users/queries'
+import { useBookmarkedTitlesQuery, useUserQueries } from '@/feature/users/queries'
 import { Bookmark, Calendar, Star } from 'lucide-react'
 import { useState } from 'react'
 import Button from 'react-bootstrap/Button'
@@ -10,6 +10,7 @@ import Form from 'react-bootstrap/Form'
 import Modal from 'react-bootstrap/Modal'
 import Nav from 'react-bootstrap/Nav'
 import Tab from 'react-bootstrap/Tab'
+import { Link } from 'react-router'
 
 /* 
 TODO: Update database to cascade delete ratings and bookmarks when user is 
@@ -26,7 +27,7 @@ function ProfileAvatar({ username }: { username?: string }) {
 
   return (
     <div
-      className="d-flex align-items-center justify-content-center rounded-circle mx-auto"
+      className="d-flex align-items-center justify-content-center mx-auto rounded-circle"
       style={{
         width: '120px',
         height: '120px',
@@ -43,13 +44,13 @@ function ProfileAvatar({ username }: { username?: string }) {
 
 function StatCard({ value, label, description }: { value: string | number; label: string; description: string }) {
   return (
-    <Card className="h-100 border">
+    <Card className="border h-100">
       <Card.Body className="d-flex flex-column">
-        <div className="text-primary fw-bold mb-2" style={{ fontSize: '2rem' }}>
+        <div className="mb-2 text-primary fw-bold" style={{ fontSize: '2rem' }}>
           {value}
         </div>
-        <div className="fw-semibold mb-1">{label}</div>
-        <div className="small text-muted">{description}</div>
+        <div className="mb-1 fw-semibold">{label}</div>
+        <div className="text-muted small">{description}</div>
       </Card.Body>
     </Card>
   )
@@ -62,6 +63,9 @@ export default function Profile() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const { updateUserName, deleteUser } = useUserQueries()
   const { showToast } = useToast()
+
+  const bookmarkedTitlesQuery = useBookmarkedTitlesQuery()
+  const bookmarkedTitles = bookmarkedTitlesQuery.data?.items
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -99,8 +103,7 @@ export default function Profile() {
   return (
     <div className="py-5">
       <CustomContainer>
-        {/* Profile Header Section */}
-        <div className="text-center mb-5">
+        <div className="mb-5 text-center">
           <ProfileAvatar username={user?.username} />
           <h1 className="mt-3 mb-2 fw-bold">{user?.username || 'User'}</h1>
           <Button variant="danger" className="text-white" onClick={handleDeleteClick}>
@@ -108,14 +111,13 @@ export default function Profile() {
           </Button>
         </div>
 
-        {/* Delete Confirmation Modal */}
         <Modal show={showDeleteModal} onHide={handleDeleteCancel} centered>
           <Modal.Header closeButton>
             <Modal.Title>Delete Account</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <p>Are you sure you want to delete your account?</p>
-            <p className="text-danger fw-semibold mb-0">
+            <p className="mb-0 text-danger fw-semibold">
               This action cannot be undone. All your data, including ratings and bookmarks, will be permanently deleted.
             </p>
           </Modal.Body>
@@ -129,8 +131,7 @@ export default function Profile() {
           </Modal.Footer>
         </Modal>
 
-        {/* Statistics Cards */}
-        <div className="row g-3 mb-5">
+        <div className="mb-5 row g-3">
           <div className="col-md-4">
             <StatCard value="125" label="Total Items Rated" description="Movies and shows you've reviewed" />
           </div>
@@ -142,9 +143,8 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Tabs Section */}
         <Tab.Container activeKey={activeTab} onSelect={(k) => k && setActiveTab(k)}>
-          <Nav variant="tabs" className="border-bottom mb-4" style={{ borderBottom: 'none' }}>
+          <Nav variant="tabs" className="mb-4 border-bottom" style={{ borderBottom: 'none' }}>
             <Nav.Item>
               <Nav.Link
                 eventKey="profile-info"
@@ -231,22 +231,33 @@ export default function Profile() {
             </Tab.Pane>
 
             <Tab.Pane eventKey="bookmarks">
-              <div className="text-center py-5 text-muted">
-                <Bookmark style={{ width: '3rem', height: '3rem' }} className="mb-3 opacity-50" />
-                <p>No bookmarks yet. Start bookmarking your favorite movies and shows!</p>
-              </div>
+              {bookmarkedTitles && bookmarkedTitles.length > 0 ? (
+                <div>
+                  {bookmarkedTitles.map((bt) => (
+                    <Link key={bt.tconst} to={`/titles/${bt.tconst}`}>
+                      <p>{bt.primaryTitle}</p>
+                      <p>{bt.bookmarkDate.toString()}</p>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-5 text-muted text-center">
+                  <Bookmark style={{ width: '3rem', height: '3rem' }} className="opacity-50 mb-3" />
+                  <p>No bookmarks yet. Start bookmarking your favorite movies and shows!</p>
+                </div>
+              )}
             </Tab.Pane>
 
             <Tab.Pane eventKey="ratings">
-              <div className="text-center py-5 text-muted">
-                <Star style={{ width: '3rem', height: '3rem' }} className="mb-3 opacity-50" />
+              <div className="py-5 text-muted text-center">
+                <Star style={{ width: '3rem', height: '3rem' }} className="opacity-50 mb-3" />
                 <p>No ratings yet. Rate movies and shows to see them here!</p>
               </div>
             </Tab.Pane>
 
             <Tab.Pane eventKey="activity">
-              <div className="text-center py-5 text-muted">
-                <Calendar style={{ width: '3rem', height: '3rem' }} className="mb-3 opacity-50" />
+              <div className="py-5 text-muted text-center">
+                <Calendar style={{ width: '3rem', height: '3rem' }} className="opacity-50 mb-3" />
                 <p>No recent activity. Your latest actions will appear here!</p>
               </div>
             </Tab.Pane>
