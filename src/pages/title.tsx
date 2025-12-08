@@ -5,7 +5,7 @@ import { useTitleRatingQuery } from '@/feature/ratings/queries'
 import { useTitleQuery } from '@/feature/titles/queries'
 import { useUserQueries } from '@/feature/users/queries'
 import { formatRuntime } from '@/lib/utils'
-import { Bookmark, Star } from 'lucide-react'
+import { Bookmark, RefreshCw, Star } from 'lucide-react'
 import { useState } from 'react'
 import Badge from 'react-bootstrap/Badge'
 import Button from 'react-bootstrap/Button'
@@ -24,11 +24,11 @@ export default function Title() {
   const [hoveredRating, setHoveredRating] = useState<number | null>(null)
   const [isRateHovered, setIsRateHovered] = useState(false)
 
-  const { data: title, isLoading, isBookmarked, setIsBookmarked } = useTitleQuery(tconst!)
+  const { data: title, isLoading, isBookmarked, setIsBookmarked, userRating, setUserRating } = useTitleQuery(tconst!)
   const titleRatingQuery = useTitleRatingQuery(tconst!)
   const { showToast } = useToast()
 
-  const { createTitleBookmark, deleteTitleBookmark } = useUserQueries()
+  const { createTitleBookmark, deleteTitleBookmark, createTitleRating } = useUserQueries()
 
   const handleCloseModal = () => {
     setShowRatingModal(false)
@@ -39,10 +39,18 @@ export default function Title() {
     setSelectedRating(rating)
   }
 
-  const handleRateSubmit = () => {
-    // TODO: Implement rating submission
-    console.log('Rating submitted:', selectedRating)
-    handleCloseModal()
+  const handleRateSubmit = async (tconst: string) => {
+    if (selectedRating) {
+      try {
+        await createTitleRating(tconst, selectedRating)
+        showToast('Succesfully rated title', 'success')
+        setUserRating(selectedRating)
+      } catch (error) {
+        showToast(`Error rating title: ${error}`, 'error')
+      } finally {
+        handleCloseModal()
+      }
+    }
   }
 
   const handleToggleBookmark = async (tconst: string) => {
@@ -129,13 +137,20 @@ export default function Title() {
                     >
                       <Star
                         style={{
-                          fill: isRateHovered ? '#ffc107' : 'none',
+                          fill: userRating || isRateHovered ? '#ffc107' : 'none',
                           stroke: '#ffc107',
                           strokeWidth: 2,
                           transition: 'fill 0.2s ease',
                         }}
                       />
-                      <span>Rate</span>
+                      <span>{userRating}</span>
+                      {userRating ? (
+                        <div>
+                          <RefreshCw />
+                        </div>
+                      ) : (
+                        <span>Rate title</span>
+                      )}
                     </div>
                   </div>
 
@@ -259,7 +274,12 @@ export default function Title() {
           <Button variant="secondary" onClick={handleCloseModal}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={handleRateSubmit} disabled={selectedRating === null}>
+          <Button
+            variant="primary"
+            onClick={() => handleRateSubmit(title.tconst)}
+            disabled={selectedRating === null}
+            className="text-white"
+          >
             Rate
           </Button>
         </Modal.Footer>

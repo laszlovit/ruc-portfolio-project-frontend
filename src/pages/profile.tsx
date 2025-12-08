@@ -1,7 +1,7 @@
 import { Container as CustomContainer } from '@/components/container'
 import { useAuth } from '@/contexts/auth-context'
 import { useToast } from '@/contexts/toast-context'
-import { useBookmarkedTitlesQuery, useUserQueries } from '@/feature/users/queries'
+import { useBookmarkedTitlesQuery, useRatedTitlesQuery, useUserQueries } from '@/feature/users/queries'
 import { Bookmark, Calendar, Star } from 'lucide-react'
 import { useState } from 'react'
 import Button from 'react-bootstrap/Button'
@@ -64,8 +64,8 @@ export default function Profile() {
   const { updateUserName, deleteUser } = useUserQueries()
   const { showToast } = useToast()
 
-  const bookmarkedTitlesQuery = useBookmarkedTitlesQuery()
-  const bookmarkedTitles = bookmarkedTitlesQuery.data?.items
+  const { data: bookmarkedTitlesData } = useBookmarkedTitlesQuery()
+  const { data: ratedTitlesData } = useRatedTitlesQuery()
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -133,10 +133,18 @@ export default function Profile() {
 
         <div className="mb-5 row g-3">
           <div className="col-md-4">
-            <StatCard value="125" label="Total Items Rated" description="Movies and shows you've reviewed" />
+            <StatCard
+              value={ratedTitlesData?.total || 0}
+              label="Total Items Rated"
+              description="Movies and shows you've reviewed"
+            />
           </div>
           <div className="col-md-4">
-            <StatCard value="42" label="Total Bookmarks" description="Your curated list of must-watch content" />
+            <StatCard
+              value={bookmarkedTitlesData?.total || 0}
+              label="Total Bookmarks"
+              description="Your curated list of must-watch content"
+            />
           </div>
           <div className="col-md-4">
             <StatCard value="Last 7 days" label="Recent Activity" description="Your latest ratings and bookmarks" />
@@ -231,9 +239,9 @@ export default function Profile() {
             </Tab.Pane>
 
             <Tab.Pane eventKey="bookmarks">
-              {bookmarkedTitles && bookmarkedTitles.length > 0 ? (
+              {bookmarkedTitlesData?.items && bookmarkedTitlesData.items.length > 0 ? (
                 <div>
-                  {bookmarkedTitles.map((bt) => (
+                  {bookmarkedTitlesData.items.map((bt) => (
                     <Link key={bt.tconst} to={`/titles/${bt.tconst}`}>
                       <p>{bt.primaryTitle}</p>
                       <p>{bt.bookmarkDate.toString()}</p>
@@ -249,10 +257,21 @@ export default function Profile() {
             </Tab.Pane>
 
             <Tab.Pane eventKey="ratings">
-              <div className="py-5 text-muted text-center">
-                <Star style={{ width: '3rem', height: '3rem' }} className="opacity-50 mb-3" />
-                <p>No ratings yet. Rate movies and shows to see them here!</p>
-              </div>
+              {ratedTitlesData?.items && ratedTitlesData.items.length > 0 ? (
+                <div>
+                  {ratedTitlesData.items.map((rt) => (
+                    <Link key={rt.tconst} to={`/titles/${rt.tconst}`}>
+                      <p>{rt.primaryTitle}</p>
+                      <p>{rt.rating}</p>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-5 text-muted text-center">
+                  <Star style={{ width: '3rem', height: '3rem' }} className="opacity-50 mb-3" />
+                  <p>No ratings yet. Rate movies and shows to see them here!</p>
+                </div>
+              )}
             </Tab.Pane>
 
             <Tab.Pane eventKey="activity">

@@ -1,5 +1,5 @@
 import { useAuth } from '@/contexts/auth-context'
-import type { BookmarkTitleList, User } from '@/types/users'
+import type { TitleBookmarkList, TitleRatingList, User } from '@/types/users'
 import { useEffect, useState } from 'react'
 
 const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/users`
@@ -32,7 +32,7 @@ const deleteUser = async (): Promise<number> => {
   return response.status
 }
 
-const fetchBookmarkedTitles = async (): Promise<BookmarkTitleList> => {
+const fetchBookmarkedTitles = async (): Promise<TitleBookmarkList> => {
   const response = await fetch(`${BASE_URL}/bookmark-title`, {
     method: 'GET',
     credentials: 'include',
@@ -70,6 +70,34 @@ const deleteTitleBookmark = async (tconst: string) => {
 
   if (!response.ok) {
     throw new Error(`Failed to delete title bookmark: ${response.statusText}`)
+  }
+
+  return response.status
+}
+
+const fetchRatedTitles = async () => {
+  const response = await fetch(`${BASE_URL}/rate-title`, {
+    method: 'GET',
+    credentials: 'include',
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch rated titles: ${response.statusText}`)
+  }
+
+  return response.json()
+}
+
+const createTitleRating = async (tconst: string, rating: number) => {
+  const response = await fetch(`${BASE_URL}/rate-title`, {
+    method: 'POST',
+    headers: { 'Content-type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ tconst: tconst, rating: rating }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Error creating title rating: ${response.statusText}`)
   }
 
   return response.status
@@ -118,16 +146,26 @@ export const useUserQueries = () => {
     }
   }
 
+  const handleCreateTitleRating = async (tconst: string, rating: number) => {
+    try {
+      return await createTitleRating(tconst, rating)
+    } catch (error) {
+      console.error(error)
+      throw error
+    }
+  }
+
   return {
     updateUserName: handleUpdate,
     deleteUser: handleDelete,
     createTitleBookmark: handleCreateTitleBookmark,
     deleteTitleBookmark: handleDeleteTitleBookmark,
+    createTitleRating: handleCreateTitleRating,
   }
 }
 
 export const useBookmarkedTitlesQuery = () => {
-  const [data, setData] = useState<BookmarkTitleList | null>(null)
+  const [data, setData] = useState<TitleBookmarkList | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
@@ -141,6 +179,46 @@ export const useBookmarkedTitlesQuery = () => {
       try {
         if (!cancelled) {
           const result = await fetchBookmarkedTitles()
+          setData(result)
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err : new Error('Unkown error'))
+        }
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadTitles()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  return {
+    data,
+    isLoading,
+    error,
+  }
+}
+
+export const useRatedTitlesQuery = () => {
+  const [data, setData] = useState<TitleRatingList | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadTitles = async () => {
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        if (!cancelled) {
+          const result = await fetchRatedTitles()
           setData(result)
         }
       } catch (err) {

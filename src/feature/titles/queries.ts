@@ -69,6 +69,7 @@ export const useTitleQuery = (tconst: string) => {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
   const [isBookmarked, setIsBookmarked] = useState<boolean>()
+  const [userRating, setUserRating] = useState<number | null>(null)
 
   useEffect(() => {
     console.log('useEffect fired')
@@ -83,6 +84,7 @@ export const useTitleQuery = (tconst: string) => {
         if (!cancelled) {
           setData(result)
           setIsBookmarked(result.isBookmarked)
+          setUserRating(result.userRating)
         }
       } catch (err) {
         if (!cancelled) {
@@ -108,5 +110,7 @@ export const useTitleQuery = (tconst: string) => {
     error,
     isBookmarked,
     setIsBookmarked,
+    userRating,
+    setUserRating,
   }
 }
