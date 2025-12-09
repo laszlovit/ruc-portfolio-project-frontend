@@ -1,7 +1,12 @@
 import { Container as CustomContainer } from '@/components/container'
 import { useAuth } from '@/contexts/auth-context'
 import { useToast } from '@/contexts/toast-context'
-import { useBookmarkedTitlesQuery, useRatedTitlesQuery, useUserQueries } from '@/feature/users/queries'
+import {
+  useBookmarkedPeopleQuery,
+  useBookmarkedTitlesQuery,
+  useRatedTitlesQuery,
+  useUserQueries,
+} from '@/feature/users/queries'
 import { Bookmark, Calendar, Star, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import Button from 'react-bootstrap/Button'
@@ -11,11 +16,6 @@ import Modal from 'react-bootstrap/Modal'
 import Nav from 'react-bootstrap/Nav'
 import Tab from 'react-bootstrap/Tab'
 import { Link } from 'react-router'
-
-/* 
-TODO: Update database to cascade delete ratings and bookmarks when user is 
-deleted otherwise it will violate foreign key constraints and fail to delete user.
-*/
 
 function ProfileAvatar({ username }: { username?: string }) {
   const initials =
@@ -63,12 +63,13 @@ export default function Profile() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showDeleteBookmarkModal, setShowDeleteBookmarkModal] = useState(false)
   const [showDeleteRatingModal, setShowDeleteRatingModal] = useState(false)
-  const [itemToDelete, setItemToDelete] = useState<{ tconst: string; title: string } | null>(null)
-  const { updateUserName, deleteUser, deleteTitleBookmark, deleteTitleRating } = useUserQueries()
+  const [itemToDelete, setItemToDelete] = useState<{ tconst?: string; nconst?: string; title: string } | null>(null)
+  const { updateUserName, deleteUser, deleteTitleBookmark, deleteTitleRating, deletePersonBookmark } = useUserQueries()
   const { showToast } = useToast()
 
   const { data: bookmarkedTitlesData, bookmarkedTitles, setBookmarkedTitles } = useBookmarkedTitlesQuery()
   const { data: ratedTitlesData, ratedTitles, setRatedTitles } = useRatedTitlesQuery()
+  const { bookmarkedPeople, setBookmarkedPeople } = useBookmarkedPeopleQuery()
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -110,6 +111,13 @@ export default function Profile() {
     setShowDeleteBookmarkModal(true)
   }
 
+  const handleDeletePersonBookmarkClick = (e: React.MouseEvent, nconst: string, name: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setItemToDelete({ nconst, title: name })
+    setShowDeleteBookmarkModal(true)
+  }
+
   const handleDeleteRatingClick = (e: React.MouseEvent, tconst: string, title: string) => {
     e.preventDefault()
     e.stopPropagation()
@@ -129,21 +137,28 @@ export default function Profile() {
 
   async function handleDeleteBookmarkConfirm() {
     if (itemToDelete) {
-      await deleteTitleBookmark(itemToDelete?.tconst)
-      setBookmarkedTitles((prev) => prev!.filter((i) => i.tconst !== itemToDelete.tconst))
+      if (itemToDelete.tconst) {
+        await deleteTitleBookmark(itemToDelete.tconst)
+        setBookmarkedTitles((prev) => prev!.filter((i) => i.tconst !== itemToDelete.tconst))
+        showToast('Successfully deleted title bookmark', 'success')
+      } else if (itemToDelete.nconst) {
+        await deletePersonBookmark(itemToDelete.nconst)
+        setBookmarkedPeople((prev) => prev!.filter((i) => i.nconst !== itemToDelete.nconst))
+        showToast('Successfully deleted person bookmark', 'success')
+      }
       setItemToDelete(null)
       setShowDeleteBookmarkModal(false)
-      showToast('Succesfully deleted title bookmark', 'success')
     }
   }
 
   async function handleDeleteRatingConfirm() {
-    if (itemToDelete) {
-      await deleteTitleRating(itemToDelete?.tconst)
-      setRatedTitles((prev) => prev!.filter((i) => i.tconst !== itemToDelete.tconst))
+    if (itemToDelete && itemToDelete.tconst) {
+      const tconstToDelete = itemToDelete.tconst
+      await deleteTitleRating(tconstToDelete)
+      setRatedTitles((prev) => prev!.filter((i) => i.tconst !== tconstToDelete))
       setItemToDelete(null)
       setShowDeleteRatingModal(false)
-      showToast('Succesfully deleted title rating', 'success')
+      showToast('Successfully deleted title rating', 'success')
     }
   }
 
@@ -178,7 +193,6 @@ export default function Profile() {
           </Modal.Footer>
         </Modal>
 
-        {/* Delete Bookmark Confirmation Modal */}
         <Modal show={showDeleteBookmarkModal} onHide={handleDeleteBookmarkCancel} centered>
           <Modal.Header closeButton>
             <Modal.Title>Remove Bookmark</Modal.Title>
@@ -197,7 +211,6 @@ export default function Profile() {
           </Modal.Footer>
         </Modal>
 
-        {/* Delete Rating Confirmation Modal */}
         <Modal show={showDeleteRatingModal} onHide={handleDeleteRatingCancel} centered>
           <Modal.Header closeButton>
             <Modal.Title>Remove Rating</Modal.Title>
@@ -324,36 +337,75 @@ export default function Profile() {
             </Tab.Pane>
 
             <Tab.Pane eventKey="bookmarks">
-              {bookmarkedTitles && bookmarkedTitles.length > 0 ? (
-                <div className="d-flex flex-column gap-3">
-                  {bookmarkedTitles.map((bt) => (
-                    <Card key={bt.tconst} as={Link} to={`/titles/${bt.tconst}`} className="text-decoration-none">
-                      <Card.Body className="d-flex align-items-center justify-content-between">
-                        <div className="flex-grow-1">
-                          <Card.Title className="mb-1 h6">{bt.primaryTitle}</Card.Title>
-                          <Card.Text className="mb-0 text-muted small">
-                            Bookmarked on {new Date(bt.bookmarkDate).toLocaleDateString()}
-                          </Card.Text>
-                        </div>
-                        <div className="d-flex align-items-center gap-3">
-                          <Bookmark style={{ width: '1.5rem', height: '1.5rem' }} className="text-primary" />
-                          <Button
-                            variant="link"
-                            className="p-0 text-danger"
-                            onClick={(e) => handleDeleteBookmarkClick(e, bt.tconst, bt.primaryTitle)}
-                            style={{ minWidth: 'auto' }}
-                          >
-                            <Trash2 style={{ width: '1.25rem', height: '1.25rem' }} />
-                          </Button>
-                        </div>
-                      </Card.Body>
-                    </Card>
-                  ))}
+              {(bookmarkedTitles && bookmarkedTitles.length > 0) ||
+              (bookmarkedPeople && bookmarkedPeople.length > 0) ? (
+                <div className="d-flex flex-column gap-4">
+                  {bookmarkedTitles && bookmarkedTitles.length > 0 && (
+                    <div>
+                      <h5 className="mb-3 fw-semibold">Titles</h5>
+                      <div className="d-flex flex-column gap-3">
+                        {bookmarkedTitles.map((bt) => (
+                          <Card key={bt.tconst} as={Link} to={`/titles/${bt.tconst}`} className="text-decoration-none">
+                            <Card.Body className="d-flex align-items-center justify-content-between">
+                              <div className="flex-grow-1">
+                                <Card.Title className="mb-1 h6">{bt.primaryTitle}</Card.Title>
+                                <Card.Text className="mb-0 text-muted small">
+                                  Bookmarked on {new Date(bt.bookmarkDate).toLocaleDateString()}
+                                </Card.Text>
+                              </div>
+                              <div className="d-flex align-items-center gap-3">
+                                <Bookmark style={{ width: '1.5rem', height: '1.5rem' }} className="text-primary" />
+                                <Button
+                                  variant="link"
+                                  className="p-0 text-danger"
+                                  onClick={(e) => handleDeleteBookmarkClick(e, bt.tconst, bt.primaryTitle)}
+                                  style={{ minWidth: 'auto' }}
+                                >
+                                  <Trash2 style={{ width: '1.25rem', height: '1.25rem' }} />
+                                </Button>
+                              </div>
+                            </Card.Body>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {bookmarkedPeople && bookmarkedPeople.length > 0 && (
+                    <div>
+                      <h5 className="mb-3 fw-semibold">People</h5>
+                      <div className="d-flex flex-column gap-3">
+                        {bookmarkedPeople.map((bp) => (
+                          <Card key={bp.nconst} as={Link} to={`/people/${bp.nconst}`} className="text-decoration-none">
+                            <Card.Body className="d-flex align-items-center justify-content-between">
+                              <div className="flex-grow-1">
+                                <Card.Title className="mb-1 h6">{bp.fullName}</Card.Title>
+                                <Card.Text className="mb-0 text-muted small">
+                                  Bookmarked on {new Date(bp.bookmarkDate).toLocaleDateString()}
+                                </Card.Text>
+                              </div>
+                              <div className="d-flex align-items-center gap-3">
+                                <Bookmark style={{ width: '1.5rem', height: '1.5rem' }} className="text-primary" />
+                                <Button
+                                  variant="link"
+                                  className="p-0 text-danger"
+                                  onClick={(e) => handleDeletePersonBookmarkClick(e, bp.nconst, bp.fullName)}
+                                  style={{ minWidth: 'auto' }}
+                                >
+                                  <Trash2 style={{ width: '1.25rem', height: '1.25rem' }} />
+                                </Button>
+                              </div>
+                            </Card.Body>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="py-5 text-muted text-center">
                   <Bookmark style={{ width: '3rem', height: '3rem' }} className="opacity-50 mb-3" />
-                  <p>No bookmarks yet. Start bookmarking your favorite movies and shows!</p>
+                  <p>No bookmarks yet. Start bookmarking your favorite movies, shows, and people!</p>
                 </div>
               )}
             </Tab.Pane>

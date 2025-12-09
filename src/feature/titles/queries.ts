@@ -72,7 +72,6 @@ export const useTitleQuery = (tconst: string) => {
   const [userRating, setUserRating] = useState<number | null>(null)
 
   useEffect(() => {
-    console.log('useEffect fired')
     let cancelled = false
 
     const loadTitle = async () => {

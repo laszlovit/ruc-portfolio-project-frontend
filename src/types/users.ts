@@ -35,3 +35,19 @@ export type TitleRatingList = {
   nextPage?: string
   previousPage?: string
 }
+
+export type PersonBookmark = {
+  nconst: string
+  fullName: string
+  bookmarkDate: Date
+}
+
+export type PersonBookmarkList = {
+  items: PersonBookmark[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+  nextPage?: string
+  previousPage?: string
+}

@@ -21,6 +21,7 @@ export type PersonFull = {
   deathYear: number | null
   derivedRating: number | null
   professions: Proffession[]
+  isBookmarked: boolean
 }
 
 export type TitlePerson = {
