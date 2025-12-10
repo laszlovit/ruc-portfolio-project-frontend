@@ -10,7 +10,7 @@ import { Container } from './container'
 import { Logo } from './logo'
 
 const navLinks = [
-  { href: '#', label: 'Movies', icon: Film },
+  { href: '/titles', label: 'Titles', icon: Film },
   { href: '#', label: 'TV Shows', icon: Tv },
   { href: '#', label: 'Celebs', icon: Users },
 ]
@@ -18,7 +18,7 @@ const navLinks = [
 function Avatar({ src, alt, fallback }: { src?: string; alt: string; fallback: string }) {
   return (
     <div
-      className="d-flex align-items-center justify-content-center bg-secondary rounded-circle overflow-hidden bg-background-gray"
+      className="d-flex align-items-center justify-content-center bg-background-gray bg-secondary rounded-circle overflow-hidden"
       style={{ width: '1.5rem', height: '1.5rem' }}
     >
       {src ? (
@@ -97,7 +97,7 @@ export default function Navbar() {
                   <Dropdown>
                     <Dropdown.Toggle
                       variant="link"
-                      className="d-flex align-items-center gap-3 px-3 py-2 w-100 text-decoration-none text-dark"
+                      className="d-flex align-items-center gap-3 px-3 py-2 w-100 text-dark text-decoration-none"
                       style={{ border: 'none' }}
                     >
                       <Avatar
@@ -137,7 +137,7 @@ export default function Navbar() {
               <Dropdown>
                 <Dropdown.Toggle
                   variant="link"
-                  className="d-flex align-items-center gap-2 text-decoration-none text-dark"
+                  className="d-flex align-items-center gap-2 text-dark text-decoration-none"
                   style={{ border: 'none' }}
                 >
                   <Avatar
