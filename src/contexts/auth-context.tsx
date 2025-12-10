@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [BASE_URL])
 
   const login = async (data: LoginRequest) => {
     const response = await fetch(`${BASE_URL}/login`, {
