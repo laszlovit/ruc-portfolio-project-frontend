@@ -1,4 +1,3 @@
-import { useAuth } from '@/contexts/auth-context'
 import type {
   PersonBookmark,
   PersonBookmarkList,
@@ -170,12 +169,6 @@ const deletePersonBookmark = async (nconst: string) => {
 }
 
 export const useUserQueries = () => {
-  const { isAuthenticated } = useAuth()
-
-  if (!isAuthenticated) {
-    throw new Error('User not authenticated')
-  }
-
   const handleUpdate = async (username: string) => {
     try {
       return await updateUserName(username)
