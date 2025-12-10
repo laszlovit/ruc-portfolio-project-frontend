@@ -13,22 +13,31 @@ import Modal from 'react-bootstrap/Modal'
 import Nav from 'react-bootstrap/Nav'
 import { Link, useNavigate, useParams } from 'react-router'
 
-// TODO: User rating need to be implemented once auth flow is ready
-
 export default function Title() {
   const { tconst } = useParams()
   const navigate = useNavigate()
+
   const [activeTab, setActiveTab] = useState('details')
+
   const [showRatingModal, setShowRatingModal] = useState(false)
   const [selectedRating, setSelectedRating] = useState<number | null>(null)
   const [hoveredRating, setHoveredRating] = useState<number | null>(null)
   const [isRateHovered, setIsRateHovered] = useState(false)
 
   const { data: title, isLoading, isBookmarked, setIsBookmarked, userRating, setUserRating } = useTitleQuery(tconst!)
-  const titleRatingQuery = useTitleRatingQuery(tconst!)
+  const { data: titleRating } = useTitleRatingQuery(tconst!)
   const { showToast } = useToast()
 
   const { createTitleBookmark, deleteTitleBookmark, createTitleRating } = useUserQueries()
+
+  if (isLoading) {
+    return <LoadingSpinner />
+  }
+
+  if (!title) {
+    navigate('/not-found')
+    return null
+  }
 
   const handleCloseModal = () => {
     setShowRatingModal(false)
@@ -65,20 +74,11 @@ export default function Title() {
     setIsBookmarked(!isBookmarked)
   }
 
-  if (isLoading) {
-    return <LoadingSpinner />
-  }
-
-  if (!title) {
-    navigate('/not-found')
-    return null
-  }
-
   const placeholderPosterUrl = `https://placehold.co/400x600?text=${encodeURIComponent(title.primaryTitle)}`
 
   const runtime = title.runtimeMin ? formatRuntime(title.runtimeMin) : 'N/A'
-  const titleRatingAvg = titleRatingQuery.data?.avgRating || 'N/A'
-  const titleRatingNumVotes = titleRatingQuery.data?.numVotes || 'N/A'
+  const titleRatingAvg = titleRating?.avgRating || 'N/A'
+  const titleRatingNumVotes = titleRating?.numVotes || 'N/A'
 
   return (
     <>

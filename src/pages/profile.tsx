@@ -1,4 +1,5 @@
 import { Container as CustomContainer } from '@/components/container'
+import LoadingSpinner from '@/components/loading-spinner'
 import { useAuth } from '@/contexts/auth-context'
 import { useToast } from '@/contexts/toast-context'
 import {
@@ -15,7 +16,7 @@ import Form from 'react-bootstrap/Form'
 import Modal from 'react-bootstrap/Modal'
 import Nav from 'react-bootstrap/Nav'
 import Tab from 'react-bootstrap/Tab'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 
 function ProfileAvatar({ username }: { username?: string }) {
   const initials =
@@ -57,7 +58,8 @@ function StatCard({ value, label, description }: { value: string | number; label
 }
 
 export default function Profile() {
-  const { user, updateUser, logout } = useAuth()
+  const navigate = useNavigate()
+  const { user, updateUser, logout, isLoading } = useAuth()
   const [username, setUsername] = useState<string>(() => user?.username ?? '')
   const [activeTab, setActiveTab] = useState<string>('profile-info')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -70,6 +72,15 @@ export default function Profile() {
   const { data: bookmarkedTitlesData, bookmarkedTitles, setBookmarkedTitles } = useBookmarkedTitlesQuery()
   const { data: ratedTitlesData, ratedTitles, setRatedTitles } = useRatedTitlesQuery()
   const { bookmarkedPeople, setBookmarkedPeople } = useBookmarkedPeopleQuery()
+
+  if (isLoading) {
+    return <LoadingSpinner />
+  }
+
+  if (!user) {
+    navigate('/not-found')
+    return null
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
