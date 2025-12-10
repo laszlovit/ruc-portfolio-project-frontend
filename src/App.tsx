@@ -14,16 +14,15 @@ function App() {
     <Routes>
       <Route element={<Layout />}>
         {/* Public  */}
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/titles/:tconst" element={<Title />} />
+        <Route path="/people/:nconst" element={<Person />} />
         {/* Protected  */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<Home />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/titles/:tconst" element={<Title />} />
-          <Route path="/people/:nconst" element={<Person />} />
         </Route>
-
         {/* 404  */}
         <Route path="*" element={<NotFound />} />
       </Route>
