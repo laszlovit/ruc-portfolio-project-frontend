@@ -14,7 +14,7 @@ import Row from 'react-bootstrap/Row'
 import { Link, useSearchParams } from 'react-router'
 
 function TitleCard({ title }: { title: Title }) {
-  const imageUrl = title.posterUrl || `https://placehold.co/300x450?text=${encodeURIComponent(title.primaryTitle)}`
+  const imageUrlFallback = `https://placehold.co/300x450?text=${encodeURIComponent(title.primaryTitle)}`
 
   return (
     <Card
@@ -24,7 +24,13 @@ function TitleCard({ title }: { title: Title }) {
     >
       <div className="p-0">
         <div className="position-relative bg-secondary w-100 overflow-hidden ratio" style={{ aspectRatio: '2/3' }}>
-          <img src={imageUrl} alt={title.primaryTitle} className="w-100 h-100" style={{ objectFit: 'cover' }} />
+          <img
+            src={title.posterUrl ?? imageUrlFallback}
+            onError={(e) => (e.currentTarget.src = imageUrlFallback)}
+            alt={title.primaryTitle}
+            className="w-100 h-100"
+            style={{ objectFit: 'cover' }}
+          />
           {title.isBookmarked && (
             <div
               className="top-0 position-absolute m-2 end-0"

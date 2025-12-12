@@ -21,10 +21,6 @@ export const buildQueryString = (params: QueryParams): string => {
     searchParams.append('genreName', params.genreName.toString())
   }
 
-  if (params.genreName !== undefined) {
-    searchParams.append('genreName', params.genreName.toString())
-  }
-
   if (params.page !== undefined) {
     searchParams.append('page', params.page.toString())
   }
