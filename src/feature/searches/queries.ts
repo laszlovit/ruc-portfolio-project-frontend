@@ -1,12 +1,13 @@
 import type { StringSearchTitles } from '@/types/searches'
 import { useEffect, useState } from 'react'
+import { buildStringSearchQueryString, type StringSearchQueryParams } from '../shared/query-params'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL
 
-const fetchStringSearchTitles = async (query?: string): Promise<StringSearchTitles> => {
-  const queryParam = query ? `?query=${query}` : ''
+const fetchStringSearchTitles = async (params?: StringSearchQueryParams): Promise<StringSearchTitles> => {
+  const queryString = params ? buildStringSearchQueryString(params) : ''
 
-  const response = await fetch(`${BASE_URL}/search/string-search${queryParam}`, {
+  const response = await fetch(`${BASE_URL}/search/string-search${queryString}`, {
     method: 'GET',
     credentials: 'include',
   })
@@ -18,7 +19,7 @@ const fetchStringSearchTitles = async (query?: string): Promise<StringSearchTitl
   return response.json()
 }
 
-export const useStringSearchTitles = (query?: string) => {
+export const useStringSearchTitles = (params?: StringSearchQueryParams) => {
   const [data, setData] = useState<StringSearchTitles | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
@@ -32,7 +33,7 @@ export const useStringSearchTitles = (query?: string) => {
 
       try {
         if (!cancelled) {
-          const result = await fetchStringSearchTitles(query)
+          const result = await fetchStringSearchTitles(params)
           setData(result)
         }
       } catch (err) {
@@ -49,7 +50,7 @@ export const useStringSearchTitles = (query?: string) => {
     return () => {
       cancelled = true
     }
-  }, [query])
+  }, [params])
 
   return {
     data,

@@ -2,13 +2,12 @@ import { Container as CustomContainer } from '@/components/container'
 import { useGenresQuery } from '@/feature/genres/queries'
 import { useTitlesQuery } from '@/feature/titles/queries'
 import type { Title } from '@/types/titles'
-import { Bookmark, Filter, Search, Star, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { Bookmark, Star } from 'lucide-react'
+import { useMemo } from 'react'
 import Button from 'react-bootstrap/Button'
 import Card from 'react-bootstrap/Card'
 import Col from 'react-bootstrap/Col'
 import Form from 'react-bootstrap/Form'
-import InputGroup from 'react-bootstrap/InputGroup'
 import Pagination from 'react-bootstrap/Pagination'
 import Row from 'react-bootstrap/Row'
 import { Link, useSearchParams } from 'react-router'
@@ -91,7 +90,6 @@ function SkeletonTitleCard() {
 
 export default function Titles() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const [showFilters, setShowFilters] = useState(false)
 
   const searchQuery = searchParams.get('search') || ''
   const selectedGenre = searchParams.get('genreName') || ''
@@ -125,11 +123,6 @@ export default function Titles() {
 
     setSearchParams(newParams, { replace: true })
   }
-
-  const handleSearchChange = (value: string) => {
-    updateSearchParams({ search: value })
-  }
-
   const handleGenreChange = (value: string) => {
     updateSearchParams({ genreName: value })
   }
@@ -153,14 +146,13 @@ export default function Titles() {
   // Build query params for API endpoint
   const params = useMemo(
     () => ({
-      page: currentPage,
+      page: currentPage - 1,
       pageSize: pageSize,
-      ...(searchQuery && { search: searchQuery }),
       ...(selectedGenre && { genreName: selectedGenre }),
       ...(selectedType && { titleType: selectedType }),
       ...(selectedYear && { year: selectedYear }),
     }),
-    [currentPage, pageSize, searchQuery, selectedGenre, selectedType, selectedYear]
+    [currentPage, pageSize, selectedGenre, selectedType, selectedYear]
   )
 
   const titlesQuery = useTitlesQuery(params)
@@ -183,98 +175,70 @@ export default function Titles() {
         <div className="mb-4">
           <h1 className="mb-4 fw-bold">Browse Titles</h1>
 
-          <div className="mb-4">
-            <Row className="g-3">
-              <Col md={showFilters ? 8 : 12}>
-                <InputGroup>
-                  <InputGroup.Text>
-                    <Search style={{ width: '1rem', height: '1rem' }} />
-                  </InputGroup.Text>
+          <Card className="mb-4">
+            <Card.Body>
+              <Row className="g-3">
+                <Col md={6} lg={3}>
+                  <Form.Label className="fw-semibold">Genre</Form.Label>
+                  <Form.Select value={selectedGenre} onChange={(e) => handleGenreChange(e.target.value)}>
+                    <option value="">All Genres</option>
+                    {genres.map((genre) => (
+                      <option key={genre.genreId} value={genre.genreName.toLowerCase()}>
+                        {genre.genreName}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Col>
+                <Col md={6} lg={3}>
+                  <Form.Label className="fw-semibold">Type</Form.Label>
+                  <Form.Select value={selectedType} onChange={(e) => handleTypeChange(e.target.value)}>
+                    <option value="">All Types</option>
+                    <option value="movie">Movie</option>
+                    <option value="short">Short</option>
+                    <option value="tvEpisode">TV Episode</option>
+                    <option value="tvMiniSeries">TV Mini Series</option>
+                    <option value="tvMovie">TV Movie</option>
+                    <option value="tvSeries">TV Series</option>
+                    <option value="tvShort">TV Short</option>
+                    <option value="tvSpecial">TV Special</option>
+                    <option value="video">Video</option>
+                    <option value="videoGame">Video Game</option>
+                  </Form.Select>
+                </Col>
+                <Col md={6} lg={3}>
+                  <Form.Label className="fw-semibold">Year</Form.Label>
                   <Form.Control
-                    placeholder="Search titles..."
-                    value={searchQuery}
-                    onChange={(e) => handleSearchChange(e.target.value)}
+                    type="number"
+                    placeholder="Year"
+                    value={selectedYear}
+                    onChange={(e) => handleYearChange(e.target.value)}
+                    min="1900"
+                    max={new Date().getFullYear()}
                   />
-                  {hasActiveFilters && (
-                    <Button variant="outline-secondary" onClick={handleClearFilters}>
-                      <X style={{ width: '1rem', height: '1rem' }} />
-                    </Button>
-                  )}
-                </InputGroup>
-              </Col>
-              <Col md={showFilters ? 4 : 12}>
-                <Button
-                  variant={showFilters ? 'primary' : 'outline-primary'}
-                  className="w-100"
-                  onClick={() => setShowFilters(!showFilters)}
-                >
-                  <Filter style={{ width: '1rem', height: '1rem' }} className="me-2" />
-                  {showFilters ? 'Hide Filters' : 'Show Filters'}
-                </Button>
-              </Col>
-            </Row>
-          </div>
-
-          {showFilters && (
-            <Card className="mb-4">
-              <Card.Body>
-                <Row className="g-3">
-                  <Col md={6} lg={3}>
-                    <Form.Label className="fw-semibold">Genre</Form.Label>
-                    <Form.Select value={selectedGenre} onChange={(e) => handleGenreChange(e.target.value)}>
-                      <option value="">All Genres</option>
-                      {genres.map((genre) => (
-                        <option key={genre.genreId} value={genre.genreName.toLowerCase()}>
-                          {genre.genreName}
-                        </option>
-                      ))}
-                    </Form.Select>
-                  </Col>
-                  <Col md={6} lg={3}>
-                    <Form.Label className="fw-semibold">Type</Form.Label>
-                    <Form.Select value={selectedType} onChange={(e) => handleTypeChange(e.target.value)}>
-                      <option value="">All Types</option>
-                      <option value="movie">Movie</option>
-                      <option value="short">Short</option>
-                      <option value="tvEpisode">TV Episode</option>
-                      <option value="tvMiniSeries">TV Mini Series</option>
-                      <option value="tvMovie">TV Movie</option>
-                      <option value="tvSeries">TV Series</option>
-                      <option value="tvShort">TV Short</option>
-                      <option value="tvSpecial">TV Special</option>
-                      <option value="video">Video</option>
-                      <option value="videoGame">Video Game</option>
-                    </Form.Select>
-                  </Col>
-                  <Col md={6} lg={3}>
-                    <Form.Label className="fw-semibold">Year</Form.Label>
-                    <Form.Control
-                      type="number"
-                      placeholder="Year"
-                      value={selectedYear}
-                      onChange={(e) => handleYearChange(e.target.value)}
-                      min="1900"
-                      max={new Date().getFullYear()}
-                    />
-                  </Col>
-                  <Col md={6} lg={3}>
-                    <Form.Label className="fw-semibold">Items per Page</Form.Label>
-                    <Form.Select value={pageSize} onChange={(e) => handlePageSizeChange(parseInt(e.target.value, 10))}>
-                      <option value="10">10</option>
-                      <option value="20">20</option>
-                      <option value="50">50</option>
-                      <option value="100">100</option>
-                    </Form.Select>
-                  </Col>
+                </Col>
+                <Col md={6} lg={3}>
+                  <Form.Label className="fw-semibold">Items per Page</Form.Label>
+                  <Form.Select value={pageSize} onChange={(e) => handlePageSizeChange(parseInt(e.target.value, 10))}>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                  </Form.Select>
+                </Col>
+                {hasActiveFilters && (
                   <Col md={6} lg={3} className="d-flex align-items-end">
-                    <Button variant="outline-secondary" className="w-100" onClick={handleClearFilters}>
+                    <Button
+                      variant="outline-secondary"
+                      className="bg-background-gray w-100 text-white"
+                      onClick={handleClearFilters}
+                    >
                       Clear Filters
                     </Button>
                   </Col>
-                </Row>
-              </Card.Body>
-            </Card>
-          )}
+                )}
+              </Row>
+            </Card.Body>
+          </Card>
 
           {!titlesQuery.isLoading && (
             <div className="mb-3">
