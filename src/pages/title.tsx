@@ -1,5 +1,6 @@
 import { Container } from '@/components/container'
 import LoadingSpinner from '@/components/loading-spinner'
+import { useAuth } from '@/contexts/auth-context'
 import { useToast } from '@/contexts/toast-context'
 import { useTitleRatingQuery } from '@/feature/ratings/queries'
 import { useTitleQuery } from '@/feature/titles/queries'
@@ -16,6 +17,7 @@ import { Link, useNavigate, useParams } from 'react-router'
 export default function Title() {
   const { tconst } = useParams()
   const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
 
   const [activeTab, setActiveTab] = useState('details')
 
@@ -63,6 +65,11 @@ export default function Title() {
   }
 
   const handleToggleBookmark = async (tconst: string) => {
+    if (!isAuthenticated) {
+      showToast('Login to bookmark title', 'warning')
+      return
+    }
+
     if (isBookmarked) {
       await deleteTitleBookmark(tconst)
       showToast('Bookmark removed successfully', 'success')
@@ -132,7 +139,9 @@ export default function Title() {
                     <div
                       className="d-flex align-items-center gap-1"
                       style={{ cursor: 'pointer' }}
-                      onClick={() => setShowRatingModal(true)}
+                      onClick={() =>
+                        isAuthenticated ? setShowRatingModal(true) : showToast('Login to rate title', 'warning')
+                      }
                       onMouseEnter={() => setIsRateHovered(true)}
                       onMouseLeave={() => setIsRateHovered(false)}
                     >

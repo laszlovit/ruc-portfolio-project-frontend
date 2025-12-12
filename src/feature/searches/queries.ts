@@ -4,8 +4,12 @@ import { buildStringSearchQueryString, type StringSearchQueryParams } from '../s
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL
 
-const fetchStringSearchTitles = async (params?: StringSearchQueryParams): Promise<StringSearchTitles> => {
+const fetchStringSearchTitles = async (params?: StringSearchQueryParams): Promise<StringSearchTitles | null> => {
   const queryString = params ? buildStringSearchQueryString(params) : ''
+
+  if (!params?.query) {
+    return null
+  }
 
   const response = await fetch(`${BASE_URL}/search/string-search${queryString}`, {
     method: 'GET',

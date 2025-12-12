@@ -1,7 +1,6 @@
 import { useToast } from '@/contexts/toast-context'
 import { Search } from 'lucide-react'
 import { useState } from 'react'
-import Accordion from 'react-bootstrap/Accordion'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
 import InputGroup from 'react-bootstrap/InputGroup'
@@ -51,18 +50,6 @@ export default function HomeHero() {
                   </Button>
                 </InputGroup>
               </div>
-            </div>
-            <div className="d-flex justify-content-center">
-              <Accordion defaultActiveKey="null" style={{ maxWidth: '28rem', width: '100%' }}>
-                <Accordion.Item eventKey="0">
-                  <Accordion.Header>Advanced Search</Accordion.Header>
-                  <Accordion.Body>
-                    <p className="mb-0 text-muted small">
-                      Advanced search options will be available here (filters, date ranges, etc.)
-                    </p>
-                  </Accordion.Body>
-                </Accordion.Item>
-              </Accordion>
             </div>
           </div>
         </div>

@@ -6,17 +6,21 @@ import {
   useBookmarkedPeopleQuery,
   useBookmarkedTitlesQuery,
   useRatedTitlesQuery,
+  useSearchHistoryQuery,
   useUserQueries,
 } from '@/feature/users/queries'
-import { Bookmark, Calendar, Star, Trash2 } from 'lucide-react'
+import { Bookmark, Search, Star, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import Button from 'react-bootstrap/Button'
 import Card from 'react-bootstrap/Card'
 import Form from 'react-bootstrap/Form'
+import ListGroup from 'react-bootstrap/ListGroup'
 import Modal from 'react-bootstrap/Modal'
 import Nav from 'react-bootstrap/Nav'
 import Tab from 'react-bootstrap/Tab'
 import { Link, useNavigate } from 'react-router'
+
+// TODO: Refetch search history
 
 function ProfileAvatar({ username }: { username?: string }) {
   const initials =
@@ -65,12 +69,21 @@ export default function Profile() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showDeleteBookmarkModal, setShowDeleteBookmarkModal] = useState(false)
   const [showDeleteRatingModal, setShowDeleteRatingModal] = useState(false)
+  const [showDeleteSearchHistoryModal, setShowDeleteSearchHistoryModal] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<{ tconst?: string; nconst?: string; title: string } | null>(null)
-  const { updateUserName, deleteUser, deleteTitleBookmark, deleteTitleRating, deletePersonBookmark } = useUserQueries()
+  const {
+    updateUserName,
+    deleteUser,
+    deleteTitleBookmark,
+    deleteTitleRating,
+    deletePersonBookmark,
+    deleteSearchHistory,
+  } = useUserQueries()
   const { showToast } = useToast()
 
   const { data: bookmarkedTitlesData, bookmarkedTitles, setBookmarkedTitles } = useBookmarkedTitlesQuery()
   const { data: ratedTitlesData, ratedTitles, setRatedTitles } = useRatedTitlesQuery()
+  const { data: searchHistoryData } = useSearchHistoryQuery()
   const { bookmarkedPeople, setBookmarkedPeople } = useBookmarkedPeopleQuery()
 
   if (isLoading) {
@@ -173,6 +186,26 @@ export default function Profile() {
     }
   }
 
+  const handleDeleteSearchHistoryClick = () => {
+    setShowDeleteSearchHistoryModal(true)
+  }
+
+  const handleDeleteSearchHistoryCancel = () => {
+    setShowDeleteSearchHistoryModal(false)
+  }
+
+  async function handleDeleteSearchHistoryConfirm() {
+    try {
+      await deleteSearchHistory()
+      setShowDeleteSearchHistoryModal(false)
+      showToast('Search history deleted successfully', 'success')
+    } catch (err) {
+      console.error('Delete search history error', err)
+      showToast('Failed to delete search history. Please try again.', 'error')
+      setShowDeleteSearchHistoryModal(false)
+    }
+  }
+
   return (
     <div className="py-5">
       <CustomContainer>
@@ -236,6 +269,24 @@ export default function Profile() {
             </Button>
             <Button variant="danger" className="text-white" onClick={handleDeleteRatingConfirm}>
               Remove Rating
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Modal show={showDeleteSearchHistoryModal} onHide={handleDeleteSearchHistoryCancel} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>Clear Search History</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p>Are you sure you want to clear all search history?</p>
+            <p className="mb-0 text-danger fw-semibold">This action cannot be undone.</p>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleDeleteSearchHistoryCancel}>
+              Cancel
+            </Button>
+            <Button variant="danger" className="text-white" onClick={handleDeleteSearchHistoryConfirm}>
+              Clear All
             </Button>
           </Modal.Footer>
         </Modal>
@@ -312,18 +363,18 @@ export default function Profile() {
             </Nav.Item>
             <Nav.Item>
               <Nav.Link
-                eventKey="activity"
-                className={activeTab === 'activity' ? 'active' : ''}
+                eventKey="search-history"
+                className={activeTab === 'search-history' ? 'active' : ''}
                 style={{
-                  borderBottom: activeTab === 'activity' ? '3px solid #636AE8' : '3px solid transparent',
+                  borderBottom: activeTab === 'search-history' ? '3px solid #636AE8' : '3px solid transparent',
                   borderTop: 'none',
                   borderLeft: 'none',
                   borderRight: 'none',
-                  backgroundColor: activeTab === 'activity' ? 'rgba(99, 106, 232, 0.05)' : 'transparent',
-                  fontWeight: activeTab === 'activity' ? '600' : 'normal',
+                  backgroundColor: activeTab === 'search-history' ? 'rgba(99, 106, 232, 0.05)' : 'transparent',
+                  fontWeight: activeTab === 'search-history' ? '600' : 'normal',
                 }}
               >
-                Recent Activity
+                Search History
               </Nav.Link>
             </Nav.Item>
           </Nav>
@@ -462,11 +513,50 @@ export default function Profile() {
               )}
             </Tab.Pane>
 
-            <Tab.Pane eventKey="activity">
-              <div className="py-5 text-muted text-center">
-                <Calendar style={{ width: '3rem', height: '3rem' }} className="opacity-50 mb-3" />
-                <p>No recent activity. Your latest actions will appear here!</p>
-              </div>
+            <Tab.Pane eventKey="search-history">
+              {searchHistoryData?.items && searchHistoryData.items.length > 0 ? (
+                <>
+                  <div className="d-flex align-items-center justify-content-between mb-3">
+                    <p className="mb-0 text-muted">
+                      {searchHistoryData.total} search{searchHistoryData.total !== 1 ? 'es' : ''}
+                    </p>
+                    <Button variant="link" className="p-0 text-danger" onClick={handleDeleteSearchHistoryClick}>
+                      <Trash2 style={{ width: '1.25rem', height: '1.25rem' }} className="me-1" />
+                      Clear All
+                    </Button>
+                  </div>
+                  <Card>
+                    <ListGroup variant="flush">
+                      {searchHistoryData.items.map((history, index) => (
+                        <ListGroup.Item
+                          key={index}
+                          action
+                          as={Link}
+                          to={`/titles/search?${history.searchParameters}`}
+                          className="d-flex align-items-center justify-content-between"
+                        >
+                          <div className="flex-grow-1">
+                            <div className="fw-semibold">{history.searchParameters}</div>
+                            <div className="text-muted small">
+                              {new Date(history.searchDate).toLocaleDateString()} at{' '}
+                              {new Date(history.searchDate).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </div>
+                          </div>
+                          <Search style={{ width: '1rem', height: '1rem' }} className="text-muted" />
+                        </ListGroup.Item>
+                      ))}
+                    </ListGroup>
+                  </Card>
+                </>
+              ) : (
+                <div className="py-5 text-muted text-center">
+                  <Search style={{ width: '3rem', height: '3rem' }} className="opacity-50 mb-3" />
+                  <p>No recent search history. Your latest searches will appear here!</p>
+                </div>
+              )}
             </Tab.Pane>
           </Tab.Content>
         </Tab.Container>

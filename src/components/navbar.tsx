@@ -1,5 +1,5 @@
 import { useAuth } from '@/contexts/auth-context'
-import { Film, LogOut, Menu, Tv, User, Users } from 'lucide-react'
+import { Film, LogOut, Menu, Search, Tv, User } from 'lucide-react'
 import { useState } from 'react'
 import Button from 'react-bootstrap/Button'
 import Dropdown from 'react-bootstrap/Dropdown'
@@ -10,9 +10,9 @@ import { Container } from './container'
 import { Logo } from './logo'
 
 const navLinks = [
-  { href: '/titles', label: 'Titles', icon: Film },
-  { href: '#', label: 'TV Shows', icon: Tv },
-  { href: '#', label: 'Celebs', icon: Users },
+  { href: '/titles', label: 'All Titles', icon: Film },
+  { href: '/titles?titleType=tvSeries', label: 'TV Shows', icon: Tv },
+  { href: '/titles/search', label: 'Title Search', icon: Search },
 ]
 
 function Avatar({ src, alt, fallback }: { src?: string; alt: string; fallback: string }) {

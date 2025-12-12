@@ -1,6 +1,7 @@
 import type {
   PersonBookmark,
   PersonBookmarkList,
+  SearchHistoryList,
   TitleBookmark,
   TitleBookmarkList,
   TitleRating,
@@ -168,6 +169,32 @@ const deletePersonBookmark = async (nconst: string) => {
   return response.status
 }
 
+const fetchSearchHistory = async (): Promise<SearchHistoryList> => {
+  const response = await fetch(`${BASE_URL}/search-history`, {
+    method: 'GET',
+    credentials: 'include',
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch search history: ${response.statusText}`)
+  }
+
+  return response.json()
+}
+
+const deleteSearchHistory = async () => {
+  const response = await fetch(`${BASE_URL}/search-history`, {
+    method: 'DELETE',
+    credentials: 'include',
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to delete search history: ${response.statusText}`)
+  }
+
+  return response.status
+}
+
 export const useUserQueries = () => {
   const handleUpdate = async (username: string) => {
     try {
@@ -241,6 +268,15 @@ export const useUserQueries = () => {
     }
   }
 
+  const handleDeleteSearchHistory = async () => {
+    try {
+      return await deleteSearchHistory()
+    } catch (error) {
+      console.error(error)
+      throw error
+    }
+  }
+
   return {
     updateUserName: handleUpdate,
     deleteUser: handleDelete,
@@ -250,6 +286,7 @@ export const useUserQueries = () => {
     deleteTitleRating: handleDeleteTitleRating,
     createPersonBookmark: handleCreatePersonBookmark,
     deletePersonBookmark: handleDeletePersonBookmark,
+    deleteSearchHistory: handleDeleteSearchHistory,
   }
 }
 
@@ -382,5 +419,45 @@ export const useBookmarkedPeopleQuery = () => {
     error,
     bookmarkedPeople,
     setBookmarkedPeople,
+  }
+}
+
+export const useSearchHistoryQuery = () => {
+  const [data, setData] = useState<SearchHistoryList | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadTitles = async () => {
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        if (!cancelled) {
+          const result = await fetchSearchHistory()
+          setData(result)
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err : new Error('Unkown error'))
+        }
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadTitles()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  return {
+    data,
+    isLoading,
+    error,
   }
 }
