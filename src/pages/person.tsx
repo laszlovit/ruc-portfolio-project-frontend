@@ -1,8 +1,10 @@
 import { Container } from '@/components/container'
 import LoadingSpinner from '@/components/loading-spinner'
 import { usePersonQuery } from '@/feature/persons/queries'
-import { Star } from 'lucide-react'
+import { useUserQueries } from '@/feature/users/queries'
+import { Bookmark, Star } from 'lucide-react'
 import { useState } from 'react'
+import { Button } from 'react-bootstrap'
 import Badge from 'react-bootstrap/Badge'
 import Nav from 'react-bootstrap/Nav'
 import { useNavigate, useParams } from 'react-router'
@@ -12,25 +14,34 @@ export default function Person() {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('details')
 
-  const personQuery = usePersonQuery(nconst!)
+  const { data: person, isLoading, error, profileImages, isBookmarked, setIsBookmarked } = usePersonQuery(nconst!)
+  const { createPersonBookmark, deletePersonBookmark } = useUserQueries()
 
-  if (personQuery.isLoading) {
+  if (isLoading) {
     return <LoadingSpinner />
   }
 
-  if (personQuery.error) {
-    return <div>Error: {personQuery.error.message}</div>
+  if (error) {
+    return <div>Error: {error.message}</div>
   }
-
-  const person = personQuery.data
 
   if (!person) {
     navigate('/not-found')
     return null
   }
 
+  const handleToggleBookmark = async (nconst: string) => {
+    if (isBookmarked) {
+      await deletePersonBookmark(nconst)
+    } else {
+      await createPersonBookmark(nconst)
+    }
+
+    setIsBookmarked(!isBookmarked)
+  }
+
   const placeholderImageUrl = `https://placehold.co/400x600?text=${encodeURIComponent(person.fullName)}`
-  const primaryImage = personQuery.profileImages[0] || placeholderImageUrl
+  const primaryImage = profileImages[0] || placeholderImageUrl
 
   return (
     <>
@@ -79,9 +90,17 @@ export default function Person() {
 
                 {person.derivedRating !== null && (
                   <div className="d-flex align-items-center gap-2">
-                    <Star style={{ fill: 'currentColor' }} />
-                    <span className="fw-medium">{person.derivedRating.toFixed(1)}</span>
-                    <span className="text-muted small">Average Rating</span>
+                    <div>
+                      <Star style={{ fill: 'currentColor' }} />
+                      <span className="fw-medium">{person.derivedRating.toFixed(1)}</span>
+                      <span className="text-muted small">Average Rating</span>
+                    </div>
+                    <div>
+                      <Button onClick={() => handleToggleBookmark(person.nconst)} variant="outline" size="sm">
+                        <Bookmark className="me-2" style={{ fill: isBookmarked ? '#636AE8' : 'none' }} />
+                        Bookmark
+                      </Button>
+                    </div>
                   </div>
                 )}
 
@@ -149,11 +168,11 @@ export default function Person() {
             {activeTab === 'filmography' && <p className="text-muted">Filmography will be displayed here.</p>}
           </div>
 
-          {personQuery.profileImages.length > 1 && (
+          {profileImages.length > 1 && (
             <div className="mt-5">
               <h2 className="mb-3 h5 fw-semibold">Photos</h2>
               <div className="row g-3">
-                {personQuery.profileImages.slice(1, 7).map((imageUrl, index) => (
+                {profileImages.slice(1, 7).map((imageUrl, index) => (
                   <div key={index} className="col-6 col-md-4 col-lg-2">
                     <div
                       className="position-relative bg-secondary rounded w-100 overflow-hidden"

@@ -3,6 +3,7 @@ import type { AuthContext, AuthResponse, LoginRequest, SignUpRequest } from '../
 
 const AuthContext = createContext<AuthContext | undefined>(undefined)
 
+/* eslint-disable react-refresh/only-export-components */
 export function useAuth() {
   const context = useContext(AuthContext)
   if (!context) {
@@ -12,7 +13,7 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/users`;
+  const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/users`
 
   const [user, setUser] = useState<AuthResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -23,7 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const checkAuth = async () => {
       try {
         const response = await fetch(`${BASE_URL}/me`, {
-          credentials: 'include'
+          credentials: 'include',
         })
 
         if (response.ok && !cancelled) {
@@ -49,14 +50,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [BASE_URL])
 
   const login = async (data: LoginRequest) => {
     const response = await fetch(`${BASE_URL}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ username: data.username, password: data.password })
+      body: JSON.stringify({ username: data.username, password: data.password }),
     })
 
     if (!response.ok) {
@@ -72,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     })
 
     if (!response.ok) {
@@ -87,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await fetch(`${BASE_URL}/logout`, {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
       })
     } catch (error) {
       console.error('Logout failed:', error)
@@ -96,10 +97,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const updateUser = (userData: AuthResponse) => {
+    setUser(userData)
+  }
+
   const isAuthenticated = !!user
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, signup, login, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, isLoading, signup, login, logout, isAuthenticated, updateUser }}>
       {children}
     </AuthContext.Provider>
   )

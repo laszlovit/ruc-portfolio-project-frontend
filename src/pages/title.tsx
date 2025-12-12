@@ -1,9 +1,11 @@
 import { Container } from '@/components/container'
 import LoadingSpinner from '@/components/loading-spinner'
+import { useToast } from '@/contexts/toast-context'
 import { useTitleRatingQuery } from '@/feature/ratings/queries'
 import { useTitleQuery } from '@/feature/titles/queries'
+import { useUserQueries } from '@/feature/users/queries'
 import { formatRuntime } from '@/lib/utils'
-import { Bookmark, Star } from 'lucide-react'
+import { Bookmark, RefreshCw, Star } from 'lucide-react'
 import { useState } from 'react'
 import Badge from 'react-bootstrap/Badge'
 import Button from 'react-bootstrap/Button'
@@ -11,19 +13,31 @@ import Modal from 'react-bootstrap/Modal'
 import Nav from 'react-bootstrap/Nav'
 import { Link, useNavigate, useParams } from 'react-router'
 
-// TODO: User rating and bookmarking needs to be implemented once auth flow is ready
-
 export default function Title() {
   const { tconst } = useParams()
   const navigate = useNavigate()
+
   const [activeTab, setActiveTab] = useState('details')
+
   const [showRatingModal, setShowRatingModal] = useState(false)
   const [selectedRating, setSelectedRating] = useState<number | null>(null)
   const [hoveredRating, setHoveredRating] = useState<number | null>(null)
   const [isRateHovered, setIsRateHovered] = useState(false)
 
-  const titleQuery = useTitleQuery(tconst!)
-  const titleRatingQuery = useTitleRatingQuery(tconst!)
+  const { data: title, isLoading, isBookmarked, setIsBookmarked, userRating, setUserRating } = useTitleQuery(tconst!)
+  const { data: titleRating } = useTitleRatingQuery(tconst!)
+  const { showToast } = useToast()
+
+  const { createTitleBookmark, deleteTitleBookmark, createTitleRating } = useUserQueries()
+
+  if (isLoading) {
+    return <LoadingSpinner />
+  }
+
+  if (!title) {
+    navigate('/not-found')
+    return null
+  }
 
   const handleCloseModal = () => {
     setShowRatingModal(false)
@@ -34,28 +48,37 @@ export default function Title() {
     setSelectedRating(rating)
   }
 
-  const handleRateSubmit = () => {
-    // TODO: Implement rating submission
-    console.log('Rating submitted:', selectedRating)
-    handleCloseModal()
+  const handleRateSubmit = async (tconst: string) => {
+    if (selectedRating) {
+      try {
+        await createTitleRating(tconst, selectedRating)
+        showToast('Succesfully rated title', 'success')
+        setUserRating(selectedRating)
+      } catch (error) {
+        showToast(`Error rating title: ${error}`, 'error')
+      } finally {
+        handleCloseModal()
+      }
+    }
   }
 
-  if (titleQuery.isLoading) {
-    return <LoadingSpinner />
-  }
+  const handleToggleBookmark = async (tconst: string) => {
+    if (isBookmarked) {
+      await deleteTitleBookmark(tconst)
+      showToast('Bookmark removed successfully', 'success')
+    } else {
+      await createTitleBookmark(tconst)
+      showToast('Bookmark added successfully', 'success')
+    }
 
-  const title = titleQuery.data
-
-  if (!title) {
-    navigate('/not-found')
-    return null
+    setIsBookmarked(!isBookmarked)
   }
 
   const placeholderPosterUrl = `https://placehold.co/400x600?text=${encodeURIComponent(title.primaryTitle)}`
 
   const runtime = title.runtimeMin ? formatRuntime(title.runtimeMin) : 'N/A'
-  const titleRatingAvg = titleRatingQuery.data?.avgRating || 'N/A'
-  const titleRatingNumVotes = titleRatingQuery.data?.numVotes || 'N/A'
+  const titleRatingAvg = titleRating?.avgRating || 'N/A'
+  const titleRatingNumVotes = titleRating?.numVotes || 'N/A'
 
   return (
     <>
@@ -114,18 +137,25 @@ export default function Title() {
                     >
                       <Star
                         style={{
-                          fill: isRateHovered ? '#ffc107' : 'none',
+                          fill: userRating || isRateHovered ? '#ffc107' : 'none',
                           stroke: '#ffc107',
                           strokeWidth: 2,
                           transition: 'fill 0.2s ease',
                         }}
                       />
-                      <span>Rate</span>
+                      <span>{userRating}</span>
+                      {userRating ? (
+                        <div>
+                          <RefreshCw />
+                        </div>
+                      ) : (
+                        <span>Rate title</span>
+                      )}
                     </div>
                   </div>
 
-                  <Button variant="outline" size="sm">
-                    <Bookmark className="me-2" style={{ width: '1rem', height: '1rem' }} />
+                  <Button onClick={() => handleToggleBookmark(title.tconst)} variant="outline" size="sm">
+                    <Bookmark className="me-2" style={{ fill: isBookmarked ? '#636AE8' : 'none' }} />
                     Bookmark
                   </Button>
                 </div>
@@ -244,7 +274,12 @@ export default function Title() {
           <Button variant="secondary" onClick={handleCloseModal}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={handleRateSubmit} disabled={selectedRating === null}>
+          <Button
+            variant="primary"
+            onClick={() => handleRateSubmit(title.tconst)}
+            disabled={selectedRating === null}
+            className="text-white"
+          >
             Rate
           </Button>
         </Modal.Footer>
