@@ -93,6 +93,7 @@ export default function Title() {
                 >
                   <img
                     src={title.posterUrl ?? placeholderPosterUrl}
+                    onError={(e) => (e.currentTarget.src = placeholderPosterUrl)}
                     alt={title.primaryTitle}
                     className="w-100 h-100"
                     style={{ objectFit: 'cover' }}

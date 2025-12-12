@@ -124,7 +124,7 @@ export default function Navbar() {
                     </Dropdown.Menu>
                   </Dropdown>
                 ) : (
-                  <Button variant="primary" className="w-100" size="sm">
+                  <Button onClick={() => navigate('/login')} variant="primary" className="w-100" size="sm">
                     <User className="me-2 text-white" style={{ width: '1rem', height: '1rem' }} />
                     <span className="text-white">Login</span>
                   </Button>
@@ -164,7 +164,7 @@ export default function Navbar() {
                 </Dropdown.Menu>
               </Dropdown>
             ) : (
-              <Button variant="primary" size="sm">
+              <Button onClick={() => navigate('/login')} variant="primary" size="sm">
                 <User className="me-2 text-white" style={{ width: '1rem', height: '1rem' }} />
                 <span className="text-white">Login</span>
               </Button>
