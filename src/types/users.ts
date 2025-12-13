@@ -51,3 +51,18 @@ export type PersonBookmarkList = {
   nextPage?: string
   previousPage?: string
 }
+
+export type SearchHistory = {
+  searchDate: Date
+  searchParameters: string
+}
+
+export type SearchHistoryList = {
+  items: SearchHistory[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+  nextPage?: string
+  previousPage?: string
+}

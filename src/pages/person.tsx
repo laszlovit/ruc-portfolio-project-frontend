@@ -1,5 +1,7 @@
 import { Container } from '@/components/container'
 import LoadingSpinner from '@/components/loading-spinner'
+import { useAuth } from '@/contexts/auth-context'
+import { useToast } from '@/contexts/toast-context'
 import { usePersonQuery } from '@/feature/persons/queries'
 import { useUserQueries } from '@/feature/users/queries'
 import { Bookmark, Star } from 'lucide-react'
@@ -12,6 +14,8 @@ import { useNavigate, useParams } from 'react-router'
 export default function Person() {
   const { nconst } = useParams()
   const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
+  const { showToast } = useToast()
   const [activeTab, setActiveTab] = useState('details')
 
   const { data: person, isLoading, error, profileImages, isBookmarked, setIsBookmarked } = usePersonQuery(nconst!)
@@ -31,10 +35,16 @@ export default function Person() {
   }
 
   const handleToggleBookmark = async (nconst: string) => {
+    if (!isAuthenticated) {
+      showToast('Login to bookmark person', 'warning')
+      return
+    }
     if (isBookmarked) {
       await deletePersonBookmark(nconst)
+      showToast('Bookmark removed successfully', 'success')
     } else {
       await createPersonBookmark(nconst)
+      showToast('Bookmark added successfully', 'success')
     }
 
     setIsBookmarked(!isBookmarked)
@@ -90,11 +100,9 @@ export default function Person() {
 
                 {person.derivedRating !== null && (
                   <div className="d-flex align-items-center gap-2">
-                    <div>
-                      <Star style={{ fill: 'currentColor' }} />
-                      <span className="fw-medium">{person.derivedRating.toFixed(1)}</span>
-                      <span className="text-muted small">Average Rating</span>
-                    </div>
+                    <Star style={{ fill: 'currentColor' }} />
+                    <span className="fw-medium">{person.derivedRating.toFixed(1)}</span>
+                    <span className="text-muted small">Average Rating</span>
                     <div>
                       <Button onClick={() => handleToggleBookmark(person.nconst)} variant="outline" size="sm">
                         <Bookmark className="me-2" style={{ fill: isBookmarked ? '#636AE8' : 'none' }} />

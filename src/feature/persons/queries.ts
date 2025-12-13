@@ -1,13 +1,13 @@
 import type { PersonFull, Persons } from '@/types/persons'
 import { useEffect, useState } from 'react'
-import type { QueryParams } from '../shared/query-params'
-import { buildQueryString } from '../shared/query-params'
+import type { PaginationQueryParams } from '../shared/query-params'
+import { buildPaginationQueryString } from '../shared/query-params'
 import { fetchTMDBPersonId, fetchTMDBPersonImage, fetchTMDBPersonImages } from './tmdb-images'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL
 
-const fetchPersons = async (params?: QueryParams): Promise<Persons> => {
-  const queryString = params ? buildQueryString(params) : ''
+const fetchPersons = async (params?: PaginationQueryParams): Promise<Persons> => {
+  const queryString = params ? buildPaginationQueryString(params) : ''
   const response = await fetch(`${BASE_URL}/persons${queryString}`)
   if (!response.ok) {
     throw new Error(`Failed to fetch persons: ${response.statusText}`)
@@ -25,7 +25,7 @@ const fetchPerson = async (nconst: string): Promise<PersonFull> => {
   return response.json()
 }
 
-export const usePersonsQuery = (params?: QueryParams) => {
+export const usePersonsQuery = (params?: PaginationQueryParams) => {
   const [data, setData] = useState<Persons | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
