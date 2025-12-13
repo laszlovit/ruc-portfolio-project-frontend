@@ -1,4 +1,4 @@
-export interface QueryParams {
+export interface TitlesQueryParams {
   page?: number
   pageSize?: number
   genreName?: string
@@ -12,7 +12,12 @@ export interface StringSearchQueryParams {
   query?: string
 }
 
-export const buildQueryString = (params: QueryParams): string => {
+export interface PaginationQueryParams {
+  page?: number
+  pageSize?: number
+}
+
+export const buildTitlesQueryString = (params: TitlesQueryParams): string => {
   const searchParams = new URLSearchParams()
 
   if (params.year !== undefined) {
@@ -45,6 +50,21 @@ export const buildStringSearchQueryString = (params: StringSearchQueryParams): s
   if (params.query !== undefined) {
     searchParams.append('query', params.query)
   }
+
+  if (params.page !== undefined) {
+    searchParams.append('page', params.page.toString())
+  }
+
+  if (params.pageSize !== undefined) {
+    searchParams.append('pageSize', params.pageSize.toString())
+  }
+
+  const queryString = searchParams.toString()
+  return queryString ? `?${queryString}` : ''
+}
+
+export const buildPaginationQueryString = (params: PaginationQueryParams): string => {
+  const searchParams = new URLSearchParams()
 
   if (params.page !== undefined) {
     searchParams.append('page', params.page.toString())

@@ -10,7 +10,7 @@ import {
   useUserQueries,
 } from '@/feature/users/queries'
 import { Bookmark, Search, Star, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Button from 'react-bootstrap/Button'
 import Card from 'react-bootstrap/Card'
 import Form from 'react-bootstrap/Form'
@@ -19,8 +19,6 @@ import Modal from 'react-bootstrap/Modal'
 import Nav from 'react-bootstrap/Nav'
 import Tab from 'react-bootstrap/Tab'
 import { Link, useNavigate } from 'react-router'
-
-// TODO: Refetch search history
 
 function ProfileAvatar({ username }: { username?: string }) {
   const initials =
@@ -71,6 +69,10 @@ export default function Profile() {
   const [showDeleteRatingModal, setShowDeleteRatingModal] = useState(false)
   const [showDeleteSearchHistoryModal, setShowDeleteSearchHistoryModal] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<{ tconst?: string; nconst?: string; title: string } | null>(null)
+  const [searchHistoryCurrentPageSize, setSearchHistoryCurrentPageSize] = useState(10)
+  const [bookmarkedTitlesCurrentPageSize, setBookmarkedTitlesCurrentPageSize] = useState(10)
+  const [bookmarkedPeopleCurrentPageSize, setBookmarkedPeopleCurrentPageSize] = useState(10)
+  const [ratedTitlesCurrentPageSize, setRatedTitlesCurrentPageSize] = useState(10)
   const {
     updateUserName,
     deleteUser,
@@ -81,10 +83,39 @@ export default function Profile() {
   } = useUserQueries()
   const { showToast } = useToast()
 
-  const { data: bookmarkedTitlesData, bookmarkedTitles, setBookmarkedTitles } = useBookmarkedTitlesQuery()
-  const { data: ratedTitlesData, ratedTitles, setRatedTitles } = useRatedTitlesQuery()
-  const { data: searchHistoryData } = useSearchHistoryQuery()
-  const { bookmarkedPeople, setBookmarkedPeople } = useBookmarkedPeopleQuery()
+  const bookmarkedTitlesParams = useMemo(
+    () => ({
+      pageSize: bookmarkedTitlesCurrentPageSize,
+    }),
+    [bookmarkedTitlesCurrentPageSize]
+  )
+  const bookmarkedPeopleParams = useMemo(
+    () => ({
+      pageSize: bookmarkedPeopleCurrentPageSize,
+    }),
+    [bookmarkedPeopleCurrentPageSize]
+  )
+
+  const ratedTitlesParams = useMemo(
+    () => ({
+      pageSize: ratedTitlesCurrentPageSize,
+    }),
+    [ratedTitlesCurrentPageSize]
+  )
+
+  const searchHistoryParams = useMemo(
+    () => ({
+      pageSize: searchHistoryCurrentPageSize,
+    }),
+    [searchHistoryCurrentPageSize]
+  )
+
+  const { data: bookmarkedTitlesData, setRefetch: refetchBookmarkedTitles } =
+    useBookmarkedTitlesQuery(bookmarkedTitlesParams)
+  const { data: ratedTitlesData, setRefetch: refetchRatedTitles } = useRatedTitlesQuery(ratedTitlesParams)
+  const { data: searchHistoryData, setRefetch: refetchSearchHistory } = useSearchHistoryQuery(searchHistoryParams)
+  const { data: bookmarkedPeopleData, setRefetch: refetchBookmarkedPeople } =
+    useBookmarkedPeopleQuery(bookmarkedPeopleParams)
 
   if (isLoading) {
     return <LoadingSpinner />
@@ -163,11 +194,11 @@ export default function Profile() {
     if (itemToDelete) {
       if (itemToDelete.tconst) {
         await deleteTitleBookmark(itemToDelete.tconst)
-        setBookmarkedTitles((prev) => prev!.filter((i) => i.tconst !== itemToDelete.tconst))
+        refetchBookmarkedTitles((prev) => !prev)
         showToast('Successfully deleted title bookmark', 'success')
       } else if (itemToDelete.nconst) {
         await deletePersonBookmark(itemToDelete.nconst)
-        setBookmarkedPeople((prev) => prev!.filter((i) => i.nconst !== itemToDelete.nconst))
+        refetchBookmarkedPeople((prev) => !prev)
         showToast('Successfully deleted person bookmark', 'success')
       }
       setItemToDelete(null)
@@ -179,7 +210,7 @@ export default function Profile() {
     if (itemToDelete && itemToDelete.tconst) {
       const tconstToDelete = itemToDelete.tconst
       await deleteTitleRating(tconstToDelete)
-      setRatedTitles((prev) => prev!.filter((i) => i.tconst !== tconstToDelete))
+      refetchRatedTitles((prev) => !prev)
       setItemToDelete(null)
       setShowDeleteRatingModal(false)
       showToast('Successfully deleted title rating', 'success')
@@ -197,6 +228,7 @@ export default function Profile() {
   async function handleDeleteSearchHistoryConfirm() {
     try {
       await deleteSearchHistory()
+      refetchSearchHistory((prev) => !prev)
       setShowDeleteSearchHistoryModal(false)
       showToast('Search history deleted successfully', 'success')
     } catch (err) {
@@ -301,13 +333,21 @@ export default function Profile() {
           </div>
           <div className="col-md-4">
             <StatCard
-              value={bookmarkedTitlesData?.total || 0}
+              value={
+                bookmarkedTitlesData?.total && bookmarkedPeopleData?.total
+                  ? bookmarkedTitlesData?.total + bookmarkedPeopleData?.total
+                  : bookmarkedTitlesData?.total || bookmarkedPeopleData?.total || 0
+              }
               label="Total Bookmarks"
               description="Your curated list of must-watch content"
             />
           </div>
           <div className="col-md-4">
-            <StatCard value="Last 7 days" label="Recent Activity" description="Your latest ratings and bookmarks" />
+            <StatCard
+              value={searchHistoryData?.total || 0}
+              label="Total searches"
+              description="Your latest search history"
+            />
           </div>
         </div>
 
@@ -399,14 +439,14 @@ export default function Profile() {
             </Tab.Pane>
 
             <Tab.Pane eventKey="bookmarks">
-              {(bookmarkedTitles && bookmarkedTitles.length > 0) ||
-              (bookmarkedPeople && bookmarkedPeople.length > 0) ? (
+              {(bookmarkedTitlesData?.items && bookmarkedTitlesData.items.length > 0) ||
+              (bookmarkedPeopleData?.items && bookmarkedPeopleData.items.length > 0) ? (
                 <div className="d-flex flex-column gap-4">
-                  {bookmarkedTitles && bookmarkedTitles.length > 0 && (
+                  {bookmarkedTitlesData?.items && bookmarkedTitlesData.items.length > 0 && (
                     <div>
                       <h5 className="mb-3 fw-semibold">Titles</h5>
                       <div className="d-flex flex-column gap-3">
-                        {bookmarkedTitles.map((bt) => (
+                        {bookmarkedTitlesData.items.map((bt) => (
                           <Card key={bt.tconst} as={Link} to={`/titles/${bt.tconst}`} className="text-decoration-none">
                             <Card.Body className="d-flex align-items-center justify-content-between">
                               <div className="flex-grow-1">
@@ -429,15 +469,26 @@ export default function Profile() {
                             </Card.Body>
                           </Card>
                         ))}
+                        {bookmarkedTitlesData?.nextPage && (
+                          <div className="d-flex justify-content-center my-3">
+                            <Button
+                              onClick={() => setBookmarkedTitlesCurrentPageSize((prev) => prev + 10)}
+                              variant="outline-primary"
+                              size="sm"
+                            >
+                              Load more
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
 
-                  {bookmarkedPeople && bookmarkedPeople.length > 0 && (
+                  {bookmarkedPeopleData?.items && bookmarkedPeopleData.items.length > 0 && (
                     <div>
                       <h5 className="mb-3 fw-semibold">People</h5>
                       <div className="d-flex flex-column gap-3">
-                        {bookmarkedPeople.map((bp) => (
+                        {bookmarkedPeopleData.items.map((bp) => (
                           <Card key={bp.nconst} as={Link} to={`/people/${bp.nconst}`} className="text-decoration-none">
                             <Card.Body className="d-flex align-items-center justify-content-between">
                               <div className="flex-grow-1">
@@ -463,6 +514,17 @@ export default function Profile() {
                       </div>
                     </div>
                   )}
+                  {bookmarkedPeopleData?.nextPage && (
+                    <div className="d-flex justify-content-center my-3">
+                      <Button
+                        onClick={() => setBookmarkedPeopleCurrentPageSize((prev) => prev + 10)}
+                        variant="outline-primary"
+                        size="sm"
+                      >
+                        Load more
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="py-5 text-muted text-center">
@@ -473,9 +535,9 @@ export default function Profile() {
             </Tab.Pane>
 
             <Tab.Pane eventKey="ratings">
-              {ratedTitles && ratedTitles.length > 0 ? (
+              {ratedTitlesData?.items && ratedTitlesData.items.length > 0 ? (
                 <div className="d-flex flex-column gap-3">
-                  {ratedTitles.map((rt) => (
+                  {ratedTitlesData.items.map((rt) => (
                     <Card key={rt.tconst} as={Link} to={`/titles/${rt.tconst}`} className="text-decoration-none">
                       <Card.Body className="d-flex align-items-center justify-content-between">
                         <div className="flex-grow-1">
@@ -504,6 +566,17 @@ export default function Profile() {
                       </Card.Body>
                     </Card>
                   ))}
+                  {ratedTitlesData?.nextPage && (
+                    <div className="d-flex justify-content-center my-3">
+                      <Button
+                        onClick={() => setRatedTitlesCurrentPageSize((prev) => prev + 10)}
+                        variant="outline-primary"
+                        size="sm"
+                      >
+                        Load more
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="py-5 text-muted text-center">
@@ -517,9 +590,7 @@ export default function Profile() {
               {searchHistoryData?.items && searchHistoryData.items.length > 0 ? (
                 <>
                   <div className="d-flex align-items-center justify-content-between mb-3">
-                    <p className="mb-0 text-muted">
-                      {searchHistoryData.total} search{searchHistoryData.total !== 1 ? 'es' : ''}
-                    </p>
+                    <div className="mb-0"></div>
                     <Button variant="link" className="p-0 text-danger" onClick={handleDeleteSearchHistoryClick}>
                       <Trash2 style={{ width: '1.25rem', height: '1.25rem' }} className="me-1" />
                       Clear All
@@ -532,7 +603,7 @@ export default function Profile() {
                           key={index}
                           action
                           as={Link}
-                          to={`/titles/search?${history.searchParameters}`}
+                          to={`/titles/search?query=${history.searchParameters}`}
                           className="d-flex align-items-center justify-content-between"
                         >
                           <div className="flex-grow-1">
@@ -550,6 +621,17 @@ export default function Profile() {
                       ))}
                     </ListGroup>
                   </Card>
+                  {searchHistoryData?.nextPage && (
+                    <div className="d-flex justify-content-center my-3">
+                      <Button
+                        onClick={() => setSearchHistoryCurrentPageSize((prev) => prev + 10)}
+                        variant="outline-primary"
+                        size="sm"
+                      >
+                        Load more
+                      </Button>
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="py-5 text-muted text-center">
