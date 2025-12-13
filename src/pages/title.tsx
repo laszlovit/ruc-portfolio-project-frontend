@@ -27,7 +27,7 @@ export default function Title() {
   const [isRateHovered, setIsRateHovered] = useState(false)
 
   const { data: title, isLoading, isBookmarked, setIsBookmarked, userRating, setUserRating } = useTitleQuery(tconst!)
-  const { data: titleRating } = useTitleRatingQuery(tconst!)
+  const { data: titleRating, setRefetch: refetchTitleRating } = useTitleRatingQuery(tconst!)
   const { showToast } = useToast()
 
   const { createTitleBookmark, deleteTitleBookmark, createTitleRating } = useUserQueries()
@@ -54,6 +54,7 @@ export default function Title() {
     if (selectedRating) {
       try {
         await createTitleRating(tconst, selectedRating)
+        refetchTitleRating((prev) => !prev)
         showToast('Succesfully rated title', 'success')
         setUserRating(selectedRating)
       } catch (error) {

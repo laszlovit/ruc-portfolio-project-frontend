@@ -49,16 +49,13 @@ function TitleCard({ title }: { title: Title }) {
       </div>
       <Card.Body className="d-flex flex-grow-1 flex-column">
         <Card.Title className="mb-2 h6">{title.primaryTitle}</Card.Title>
-        <Card.Text className="mb-2 text-muted small">
-          {title.genres && title.genres.length > 0 ? title.genres.join(', ') : 'N/A'}
-        </Card.Text>
         {title.startYear && <Card.Text className="mb-0 text-muted small">{title.startYear}</Card.Text>}
       </Card.Body>
       <Card.Footer className="bg-transparent border-top-0">
         <div className="d-flex align-items-center justify-content-between">
           <div className="d-flex align-items-center gap-1">
             <Star style={{ width: '1rem', height: '1rem', fill: 'currentColor' }} className="text-warning" />
-            <span className="small fw-medium">{title.userRating || 'N/A'}</span>
+            <span className="small fw-medium">{title.avgRating || 'N/A'}</span>
           </div>
           {title.type && <span className="text-muted small">{title.type}</span>}
         </div>

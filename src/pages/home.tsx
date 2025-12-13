@@ -7,8 +7,6 @@ export default function Home() {
   return (
     <>
       <HomeHero />
-      {/* TODO: Implement recent searches */}
-      {/* <RecentSearches /> */}
       <PopularPicks />
       <ExploreGenres />
       <MeetTalent />

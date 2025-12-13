@@ -17,6 +17,7 @@ export type Title = {
   people: TitlePerson[]
   isBookmarked: boolean
   userRating: number | null
+  avgRating: number | null
 }
 
 export type Titles = {
