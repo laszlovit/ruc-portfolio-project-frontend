@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router'
 import * as z from 'zod'
 import { FormRootError } from '../components/form-root-error'
-import { Logo } from '../components/logo'
+import { Logo } from '../components/Logo'
 
 const formSchema = z
   .object({

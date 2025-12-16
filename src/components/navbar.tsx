@@ -7,7 +7,7 @@ import Nav from 'react-bootstrap/Nav'
 import Offcanvas from 'react-bootstrap/Offcanvas'
 import { Link, NavLink, useNavigate } from 'react-router'
 import { Container } from './container'
-import { Logo } from './logo'
+import { Logo } from './Logo'
 
 const navLinks = [
   { href: '/titles', label: 'All Titles', icon: Film },
