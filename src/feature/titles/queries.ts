@@ -1,4 +1,4 @@
-import type { Title, Titles } from '@/types/titles'
+import type { SimilarTitles, Title, Titles } from '@/types/titles'
 import { useEffect, useState } from 'react'
 import type { TitlesQueryParams } from '../shared/query-params'
 import { buildTitlesQueryString } from '../shared/query-params'
@@ -20,6 +20,14 @@ const fetchTitle = async (tconst: string): Promise<Title> => {
   })
   if (!response.ok) {
     throw new Error(`Failed to fetch title: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+const fetchSimilarTitles = async (tconst: string, page: number = 0, pageSize: number = 5): Promise<SimilarTitles> => {
+  const response = await fetch(`${BASE_URL}/titles/${tconst}/similar?page=${page}&pageSize=${pageSize}`)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch similar titles: ${response.statusText}`)
   }
   return response.json()
 }
@@ -112,4 +120,42 @@ export const useTitleQuery = (tconst: string) => {
     userRating,
     setUserRating,
   }
+}
+
+export const useSimilarTitlesQuery = (tconst: string, page: number = 0, pageSize: number = 5) => {
+  const [data, setData] = useState<SimilarTitles | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadSimilarTitles = async () => {
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        if (!cancelled) {
+          const result = await fetchSimilarTitles(tconst, page, pageSize)
+          setData(result)
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err : new Error('Unknown error'))
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadSimilarTitles()
+
+    return () => {
+      cancelled = true
+    }
+  }, [tconst, page, pageSize])
+
+  return { data, isLoading, error }
 }

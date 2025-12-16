@@ -3,7 +3,7 @@ import LoadingSpinner from '@/components/loading-spinner'
 import { useAuth } from '@/contexts/auth-context'
 import { useToast } from '@/contexts/toast-context'
 import { useTitleRatingQuery } from '@/feature/ratings/queries'
-import { useTitleQuery } from '@/feature/titles/queries'
+import { useTitleQuery, useSimilarTitlesQuery } from '@/feature/titles/queries'
 import { useUserQueries } from '@/feature/users/queries'
 import { formatRuntime } from '@/lib/utils'
 import { Bookmark, RefreshCw, Star } from 'lucide-react'
@@ -11,15 +11,66 @@ import { useState } from 'react'
 import Badge from 'react-bootstrap/Badge'
 import Button from 'react-bootstrap/Button'
 import Modal from 'react-bootstrap/Modal'
-import Nav from 'react-bootstrap/Nav'
 import { Link, useNavigate, useParams } from 'react-router'
+
+function SimilarTitles({ tconst }: { tconst: string }) {
+  const [page, setPage] = useState(0)
+  const { data, isLoading } = useSimilarTitlesQuery(tconst, page, 5)
+
+  if (isLoading) return <LoadingSpinner />
+  if (!data || data.items.length === 0) return <p className="text-muted">No similar titles found.</p>
+
+  return (
+    <div>
+      <div className="row g-3">
+        {data.items.map((item) => (
+          <div key={item.tconst} className="col-12">
+            <div className="d-flex align-items-center gap-3 p-3 border rounded">
+              <div className="flex-grow-1">
+                <Link to={`/titles/${item.tconst}`} className="h6 text-decoration-none mb-1 d-block">
+                  {item.primaryTitle}
+                </Link>
+                <div className="d-flex gap-3 text-muted small">
+                  <span>Rating: {item.avgRating}</span>
+                  <span>Votes: {item.numVotes}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {data.totalPages > 1 && (
+        <div className="d-flex justify-content-center gap-2 mt-4">
+          <Button
+            variant="outline-secondary"
+            size="sm"
+            disabled={page === 0}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            Previous
+          </Button>
+          <span className="align-self-center">
+            Page {page + 1} of {data.totalPages}
+          </span>
+          <Button
+            variant="outline-secondary"
+            size="sm"
+            disabled={page >= data.totalPages - 1}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Next
+          </Button>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function Title() {
   const { tconst } = useParams()
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
-
-  const [activeTab, setActiveTab] = useState('details')
 
   const [showRatingModal, setShowRatingModal] = useState(false)
   const [selectedRating, setSelectedRating] = useState<number | null>(null)
@@ -202,37 +253,28 @@ export default function Title() {
           </div>
 
           <div className="mt-5">
-            <Nav variant="tabs" activeKey={activeTab} onSelect={(k) => setActiveTab(k || 'details')} className="mb-4">
-              <Nav.Item>
-                <Nav.Link eventKey="details">Details</Nav.Link>
-              </Nav.Item>
-              <Nav.Item>
-                <Nav.Link eventKey="related">Related Items</Nav.Link>
-              </Nav.Item>
-            </Nav>
-
-            {activeTab === 'details' && (
-              <div className="row g-3">
-                <div className="col-md-6 col-12">
-                  <span className="fw-medium">Original Title:</span>
-                  <span className="ms-2 text-muted">{title.originalTitle || 'N/A'}</span>
-                </div>
-                <div className="col-md-6 col-12">
-                  <span className="fw-medium">Rated:</span>
-                  <span className="ms-2 text-muted">{title.rated || 'N/A'}</span>
-                </div>
-                <div className="col-md-6 col-12">
-                  <span className="fw-medium">Genres:</span>
-                  <span className="ms-2 text-muted">{title.genres.join(', ') || 'N/A'}</span>
-                </div>
-                <div className="col-md-6 col-12">
-                  <span className="fw-medium">Countries:</span>
-                  <span className="ms-2 text-muted">{title.countries.join(', ') || 'N/A'}</span>
-                </div>
+            <h2 className="mb-4 h4 fw-bold">Details</h2>
+            <div className="row g-3 mb-5">
+              <div className="col-md-6 col-12">
+                <span className="fw-medium">Original Title:</span>
+                <span className="ms-2 text-muted">{title.originalTitle || 'N/A'}</span>
               </div>
-            )}
+              <div className="col-md-6 col-12">
+                <span className="fw-medium">Rated:</span>
+                <span className="ms-2 text-muted">{title.rated || 'N/A'}</span>
+              </div>
+              <div className="col-md-6 col-12">
+                <span className="fw-medium">Genres:</span>
+                <span className="ms-2 text-muted">{title.genres.join(', ') || 'N/A'}</span>
+              </div>
+              <div className="col-md-6 col-12">
+                <span className="fw-medium">Countries:</span>
+                <span className="ms-2 text-muted">{title.countries.join(', ') || 'N/A'}</span>
+              </div>
+            </div>
 
-            {activeTab === 'related' && <p className="text-muted">Related items will be displayed here.</p>}
+            <h2 className="mb-4 h4 fw-bold">Related Titles</h2>
+            <SimilarTitles tconst={tconst!} />
           </div>
         </Container>
       </div>
