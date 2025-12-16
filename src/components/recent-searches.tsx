@@ -14,7 +14,7 @@ export default function RecentSearches() {
   return (
     <section className="py-5">
       <Container>
-        <h2 className="h3 fw-semibold mb-4">Your Recent Searches</h2>
+        <h2 className="mb-4 h3 fw-semibold">Your Recent Searches</h2>
         <div className="d-flex flex-wrap gap-2">
           {recentSearches.map((search, index) => (
             <Badge

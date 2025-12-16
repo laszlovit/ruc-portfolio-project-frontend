@@ -19,7 +19,7 @@ function SkeletonGenreCard() {
 
 function GenreCard({ genre }: { genre: Genre }) {
   return (
-    <Card as={Link} to={`/titles?genre=${genre.genreName.toLowerCase()}`}>
+    <Card as={Link} to={`/titles?genreName=${genre.genreName.toLowerCase()}`}>
       <Card.Body className="d-flex flex-column align-items-center text-center">
         <Card.Title className="mb-0">{genre.genreName}</Card.Title>
       </Card.Body>

@@ -6,13 +6,15 @@ import {
   useBookmarkedPeopleQuery,
   useBookmarkedTitlesQuery,
   useRatedTitlesQuery,
+  useSearchHistoryQuery,
   useUserQueries,
 } from '@/feature/users/queries'
-import { Bookmark, Calendar, Star, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { Bookmark, Search, Star, Trash2 } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import Button from 'react-bootstrap/Button'
 import Card from 'react-bootstrap/Card'
 import Form from 'react-bootstrap/Form'
+import ListGroup from 'react-bootstrap/ListGroup'
 import Modal from 'react-bootstrap/Modal'
 import Nav from 'react-bootstrap/Nav'
 import Tab from 'react-bootstrap/Tab'
@@ -65,13 +67,55 @@ export default function Profile() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showDeleteBookmarkModal, setShowDeleteBookmarkModal] = useState(false)
   const [showDeleteRatingModal, setShowDeleteRatingModal] = useState(false)
+  const [showDeleteSearchHistoryModal, setShowDeleteSearchHistoryModal] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<{ tconst?: string; nconst?: string; title: string } | null>(null)
-  const { updateUserName, deleteUser, deleteTitleBookmark, deleteTitleRating, deletePersonBookmark } = useUserQueries()
+  const [searchHistoryCurrentPageSize, setSearchHistoryCurrentPageSize] = useState(10)
+  const [bookmarkedTitlesCurrentPageSize, setBookmarkedTitlesCurrentPageSize] = useState(10)
+  const [bookmarkedPeopleCurrentPageSize, setBookmarkedPeopleCurrentPageSize] = useState(10)
+  const [ratedTitlesCurrentPageSize, setRatedTitlesCurrentPageSize] = useState(10)
+  const {
+    updateUserName,
+    deleteUser,
+    deleteTitleBookmark,
+    deleteTitleRating,
+    deletePersonBookmark,
+    deleteSearchHistory,
+  } = useUserQueries()
   const { showToast } = useToast()
 
-  const { data: bookmarkedTitlesData, bookmarkedTitles, setBookmarkedTitles } = useBookmarkedTitlesQuery()
-  const { data: ratedTitlesData, ratedTitles, setRatedTitles } = useRatedTitlesQuery()
-  const { bookmarkedPeople, setBookmarkedPeople } = useBookmarkedPeopleQuery()
+  const bookmarkedTitlesParams = useMemo(
+    () => ({
+      pageSize: bookmarkedTitlesCurrentPageSize,
+    }),
+    [bookmarkedTitlesCurrentPageSize]
+  )
+  const bookmarkedPeopleParams = useMemo(
+    () => ({
+      pageSize: bookmarkedPeopleCurrentPageSize,
+    }),
+    [bookmarkedPeopleCurrentPageSize]
+  )
+
+  const ratedTitlesParams = useMemo(
+    () => ({
+      pageSize: ratedTitlesCurrentPageSize,
+    }),
+    [ratedTitlesCurrentPageSize]
+  )
+
+  const searchHistoryParams = useMemo(
+    () => ({
+      pageSize: searchHistoryCurrentPageSize,
+    }),
+    [searchHistoryCurrentPageSize]
+  )
+
+  const { data: bookmarkedTitlesData, setRefetch: refetchBookmarkedTitles } =
+    useBookmarkedTitlesQuery(bookmarkedTitlesParams)
+  const { data: ratedTitlesData, setRefetch: refetchRatedTitles } = useRatedTitlesQuery(ratedTitlesParams)
+  const { data: searchHistoryData, setRefetch: refetchSearchHistory } = useSearchHistoryQuery(searchHistoryParams)
+  const { data: bookmarkedPeopleData, setRefetch: refetchBookmarkedPeople } =
+    useBookmarkedPeopleQuery(bookmarkedPeopleParams)
 
   if (isLoading) {
     return <LoadingSpinner />
@@ -150,11 +194,11 @@ export default function Profile() {
     if (itemToDelete) {
       if (itemToDelete.tconst) {
         await deleteTitleBookmark(itemToDelete.tconst)
-        setBookmarkedTitles((prev) => prev!.filter((i) => i.tconst !== itemToDelete.tconst))
+        refetchBookmarkedTitles((prev) => !prev)
         showToast('Successfully deleted title bookmark', 'success')
       } else if (itemToDelete.nconst) {
         await deletePersonBookmark(itemToDelete.nconst)
-        setBookmarkedPeople((prev) => prev!.filter((i) => i.nconst !== itemToDelete.nconst))
+        refetchBookmarkedPeople((prev) => !prev)
         showToast('Successfully deleted person bookmark', 'success')
       }
       setItemToDelete(null)
@@ -166,10 +210,31 @@ export default function Profile() {
     if (itemToDelete && itemToDelete.tconst) {
       const tconstToDelete = itemToDelete.tconst
       await deleteTitleRating(tconstToDelete)
-      setRatedTitles((prev) => prev!.filter((i) => i.tconst !== tconstToDelete))
+      refetchRatedTitles((prev) => !prev)
       setItemToDelete(null)
       setShowDeleteRatingModal(false)
       showToast('Successfully deleted title rating', 'success')
+    }
+  }
+
+  const handleDeleteSearchHistoryClick = () => {
+    setShowDeleteSearchHistoryModal(true)
+  }
+
+  const handleDeleteSearchHistoryCancel = () => {
+    setShowDeleteSearchHistoryModal(false)
+  }
+
+  async function handleDeleteSearchHistoryConfirm() {
+    try {
+      await deleteSearchHistory()
+      refetchSearchHistory((prev) => !prev)
+      setShowDeleteSearchHistoryModal(false)
+      showToast('Search history deleted successfully', 'success')
+    } catch (err) {
+      console.error('Delete search history error', err)
+      showToast('Failed to delete search history. Please try again.', 'error')
+      setShowDeleteSearchHistoryModal(false)
     }
   }
 
@@ -240,6 +305,24 @@ export default function Profile() {
           </Modal.Footer>
         </Modal>
 
+        <Modal show={showDeleteSearchHistoryModal} onHide={handleDeleteSearchHistoryCancel} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>Clear Search History</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p>Are you sure you want to clear all search history?</p>
+            <p className="mb-0 text-danger fw-semibold">This action cannot be undone.</p>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleDeleteSearchHistoryCancel}>
+              Cancel
+            </Button>
+            <Button variant="danger" className="text-white" onClick={handleDeleteSearchHistoryConfirm}>
+              Clear All
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
         <div className="mb-5 row g-3">
           <div className="col-md-4">
             <StatCard
@@ -250,13 +333,21 @@ export default function Profile() {
           </div>
           <div className="col-md-4">
             <StatCard
-              value={bookmarkedTitlesData?.total || 0}
+              value={
+                bookmarkedTitlesData?.total && bookmarkedPeopleData?.total
+                  ? bookmarkedTitlesData?.total + bookmarkedPeopleData?.total
+                  : bookmarkedTitlesData?.total || bookmarkedPeopleData?.total || 0
+              }
               label="Total Bookmarks"
               description="Your curated list of must-watch content"
             />
           </div>
           <div className="col-md-4">
-            <StatCard value="Last 7 days" label="Recent Activity" description="Your latest ratings and bookmarks" />
+            <StatCard
+              value={searchHistoryData?.total || 0}
+              label="Total searches"
+              description="Your latest search history"
+            />
           </div>
         </div>
 
@@ -312,18 +403,18 @@ export default function Profile() {
             </Nav.Item>
             <Nav.Item>
               <Nav.Link
-                eventKey="activity"
-                className={activeTab === 'activity' ? 'active' : ''}
+                eventKey="search-history"
+                className={activeTab === 'search-history' ? 'active' : ''}
                 style={{
-                  borderBottom: activeTab === 'activity' ? '3px solid #636AE8' : '3px solid transparent',
+                  borderBottom: activeTab === 'search-history' ? '3px solid #636AE8' : '3px solid transparent',
                   borderTop: 'none',
                   borderLeft: 'none',
                   borderRight: 'none',
-                  backgroundColor: activeTab === 'activity' ? 'rgba(99, 106, 232, 0.05)' : 'transparent',
-                  fontWeight: activeTab === 'activity' ? '600' : 'normal',
+                  backgroundColor: activeTab === 'search-history' ? 'rgba(99, 106, 232, 0.05)' : 'transparent',
+                  fontWeight: activeTab === 'search-history' ? '600' : 'normal',
                 }}
               >
-                Recent Activity
+                Search History
               </Nav.Link>
             </Nav.Item>
           </Nav>
@@ -348,14 +439,14 @@ export default function Profile() {
             </Tab.Pane>
 
             <Tab.Pane eventKey="bookmarks">
-              {(bookmarkedTitles && bookmarkedTitles.length > 0) ||
-              (bookmarkedPeople && bookmarkedPeople.length > 0) ? (
+              {(bookmarkedTitlesData?.items && bookmarkedTitlesData.items.length > 0) ||
+              (bookmarkedPeopleData?.items && bookmarkedPeopleData.items.length > 0) ? (
                 <div className="d-flex flex-column gap-4">
-                  {bookmarkedTitles && bookmarkedTitles.length > 0 && (
+                  {bookmarkedTitlesData?.items && bookmarkedTitlesData.items.length > 0 && (
                     <div>
                       <h5 className="mb-3 fw-semibold">Titles</h5>
                       <div className="d-flex flex-column gap-3">
-                        {bookmarkedTitles.map((bt) => (
+                        {bookmarkedTitlesData.items.map((bt) => (
                           <Card key={bt.tconst} as={Link} to={`/titles/${bt.tconst}`} className="text-decoration-none">
                             <Card.Body className="d-flex align-items-center justify-content-between">
                               <div className="flex-grow-1">
@@ -378,15 +469,26 @@ export default function Profile() {
                             </Card.Body>
                           </Card>
                         ))}
+                        {bookmarkedTitlesData?.nextPage && (
+                          <div className="d-flex justify-content-center my-3">
+                            <Button
+                              onClick={() => setBookmarkedTitlesCurrentPageSize((prev) => prev + 10)}
+                              variant="outline-primary"
+                              size="sm"
+                            >
+                              Load more
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
 
-                  {bookmarkedPeople && bookmarkedPeople.length > 0 && (
+                  {bookmarkedPeopleData?.items && bookmarkedPeopleData.items.length > 0 && (
                     <div>
                       <h5 className="mb-3 fw-semibold">People</h5>
                       <div className="d-flex flex-column gap-3">
-                        {bookmarkedPeople.map((bp) => (
+                        {bookmarkedPeopleData.items.map((bp) => (
                           <Card key={bp.nconst} as={Link} to={`/people/${bp.nconst}`} className="text-decoration-none">
                             <Card.Body className="d-flex align-items-center justify-content-between">
                               <div className="flex-grow-1">
@@ -412,6 +514,17 @@ export default function Profile() {
                       </div>
                     </div>
                   )}
+                  {bookmarkedPeopleData?.nextPage && (
+                    <div className="d-flex justify-content-center my-3">
+                      <Button
+                        onClick={() => setBookmarkedPeopleCurrentPageSize((prev) => prev + 10)}
+                        variant="outline-primary"
+                        size="sm"
+                      >
+                        Load more
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="py-5 text-muted text-center">
@@ -422,9 +535,9 @@ export default function Profile() {
             </Tab.Pane>
 
             <Tab.Pane eventKey="ratings">
-              {ratedTitles && ratedTitles.length > 0 ? (
+              {ratedTitlesData?.items && ratedTitlesData.items.length > 0 ? (
                 <div className="d-flex flex-column gap-3">
-                  {ratedTitles.map((rt) => (
+                  {ratedTitlesData.items.map((rt) => (
                     <Card key={rt.tconst} as={Link} to={`/titles/${rt.tconst}`} className="text-decoration-none">
                       <Card.Body className="d-flex align-items-center justify-content-between">
                         <div className="flex-grow-1">
@@ -453,6 +566,17 @@ export default function Profile() {
                       </Card.Body>
                     </Card>
                   ))}
+                  {ratedTitlesData?.nextPage && (
+                    <div className="d-flex justify-content-center my-3">
+                      <Button
+                        onClick={() => setRatedTitlesCurrentPageSize((prev) => prev + 10)}
+                        variant="outline-primary"
+                        size="sm"
+                      >
+                        Load more
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="py-5 text-muted text-center">
@@ -462,11 +586,59 @@ export default function Profile() {
               )}
             </Tab.Pane>
 
-            <Tab.Pane eventKey="activity">
-              <div className="py-5 text-muted text-center">
-                <Calendar style={{ width: '3rem', height: '3rem' }} className="opacity-50 mb-3" />
-                <p>No recent activity. Your latest actions will appear here!</p>
-              </div>
+            <Tab.Pane eventKey="search-history">
+              {searchHistoryData?.items && searchHistoryData.items.length > 0 ? (
+                <>
+                  <div className="d-flex align-items-center justify-content-between mb-3">
+                    <div className="mb-0"></div>
+                    <Button variant="link" className="p-0 text-danger" onClick={handleDeleteSearchHistoryClick}>
+                      <Trash2 style={{ width: '1.25rem', height: '1.25rem' }} className="me-1" />
+                      Clear All
+                    </Button>
+                  </div>
+                  <Card>
+                    <ListGroup variant="flush">
+                      {searchHistoryData.items.map((history, index) => (
+                        <ListGroup.Item
+                          key={index}
+                          action
+                          as={Link}
+                          to={`/titles/search?query=${history.searchParameters}`}
+                          className="d-flex align-items-center justify-content-between"
+                        >
+                          <div className="flex-grow-1">
+                            <div className="fw-semibold">{history.searchParameters}</div>
+                            <div className="text-muted small">
+                              {new Date(history.searchDate).toLocaleDateString()} at{' '}
+                              {new Date(history.searchDate).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </div>
+                          </div>
+                          <Search style={{ width: '1rem', height: '1rem' }} className="text-muted" />
+                        </ListGroup.Item>
+                      ))}
+                    </ListGroup>
+                  </Card>
+                  {searchHistoryData?.nextPage && (
+                    <div className="d-flex justify-content-center my-3">
+                      <Button
+                        onClick={() => setSearchHistoryCurrentPageSize((prev) => prev + 10)}
+                        variant="outline-primary"
+                        size="sm"
+                      >
+                        Load more
+                      </Button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="py-5 text-muted text-center">
+                  <Search style={{ width: '3rem', height: '3rem' }} className="opacity-50 mb-3" />
+                  <p>No recent search history. Your latest searches will appear here!</p>
+                </div>
+              )}
             </Tab.Pane>
           </Tab.Content>
         </Tab.Container>

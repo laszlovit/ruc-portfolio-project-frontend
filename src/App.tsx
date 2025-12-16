@@ -7,6 +7,8 @@ import Person from './pages/person'
 import Profile from './pages/profile'
 import { SignUpPage } from './pages/sign-up'
 import Title from './pages/title'
+import Titles from './pages/titles'
+import TitlesSearch from './pages/titles-search'
 import { ProtectedRoute } from './routes/protected-route'
 
 function App() {
@@ -17,8 +19,10 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/titles" element={<Titles />} />
         <Route path="/titles/:tconst" element={<Title />} />
         <Route path="/people/:nconst" element={<Person />} />
+        <Route path="/titles/search" element={<TitlesSearch />} />
         {/* Protected  */}
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<Profile />} />

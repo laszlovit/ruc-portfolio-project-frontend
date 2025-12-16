@@ -13,8 +13,12 @@ const formSchema = z.object({
 })
 
 export function LoginPage() {
-  const { login, isLoading } = useAuth()
+  const { login, isLoading, isAuthenticated } = useAuth()
   const navigate = useNavigate()
+
+  if (isAuthenticated) {
+    navigate('/')
+  }
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -28,7 +32,7 @@ export function LoginPage() {
     try {
       await login({
         username: data.username,
-        password: data.password
+        password: data.password,
       })
 
       navigate('/')

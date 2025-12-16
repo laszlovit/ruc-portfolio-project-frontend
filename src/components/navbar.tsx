@@ -1,5 +1,5 @@
 import { useAuth } from '@/contexts/auth-context'
-import { Film, LogOut, Menu, Tv, User, Users } from 'lucide-react'
+import { Film, LogOut, Menu, Search, Tv, User } from 'lucide-react'
 import { useState } from 'react'
 import Button from 'react-bootstrap/Button'
 import Dropdown from 'react-bootstrap/Dropdown'
@@ -10,15 +10,15 @@ import { Container } from './container'
 import { Logo } from './logo'
 
 const navLinks = [
-  { href: '#', label: 'Movies', icon: Film },
-  { href: '#', label: 'TV Shows', icon: Tv },
-  { href: '#', label: 'Celebs', icon: Users },
+  { href: '/titles', label: 'All Titles', icon: Film },
+  { href: '/titles?titleType=tvSeries', label: 'TV Shows', icon: Tv },
+  { href: '/titles/search', label: 'Title Search', icon: Search },
 ]
 
 function Avatar({ src, alt, fallback }: { src?: string; alt: string; fallback: string }) {
   return (
     <div
-      className="d-flex align-items-center justify-content-center bg-secondary rounded-circle overflow-hidden bg-background-gray"
+      className="d-flex align-items-center justify-content-center bg-background-gray bg-secondary rounded-circle overflow-hidden"
       style={{ width: '1.5rem', height: '1.5rem' }}
     >
       {src ? (
@@ -97,7 +97,7 @@ export default function Navbar() {
                   <Dropdown>
                     <Dropdown.Toggle
                       variant="link"
-                      className="d-flex align-items-center gap-3 px-3 py-2 w-100 text-decoration-none text-dark"
+                      className="d-flex align-items-center gap-3 px-3 py-2 w-100 text-dark text-decoration-none"
                       style={{ border: 'none' }}
                     >
                       <Avatar
@@ -124,7 +124,7 @@ export default function Navbar() {
                     </Dropdown.Menu>
                   </Dropdown>
                 ) : (
-                  <Button variant="primary" className="w-100" size="sm">
+                  <Button onClick={() => navigate('/login')} variant="primary" className="w-100" size="sm">
                     <User className="me-2 text-white" style={{ width: '1rem', height: '1rem' }} />
                     <span className="text-white">Login</span>
                   </Button>
@@ -137,7 +137,7 @@ export default function Navbar() {
               <Dropdown>
                 <Dropdown.Toggle
                   variant="link"
-                  className="d-flex align-items-center gap-2 text-decoration-none text-dark"
+                  className="d-flex align-items-center gap-2 text-dark text-decoration-none"
                   style={{ border: 'none' }}
                 >
                   <Avatar
@@ -164,7 +164,7 @@ export default function Navbar() {
                 </Dropdown.Menu>
               </Dropdown>
             ) : (
-              <Button variant="primary" size="sm">
+              <Button onClick={() => navigate('/login')} variant="primary" size="sm">
                 <User className="me-2 text-white" style={{ width: '1rem', height: '1rem' }} />
                 <span className="text-white">Login</span>
               </Button>

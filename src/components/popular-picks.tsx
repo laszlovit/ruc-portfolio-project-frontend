@@ -13,21 +13,21 @@ function TitleCard({ title }: { title: Title }) {
     <Card
       as={Link}
       to={`/titles/${title.tconst}`}
-      className="pt-0 overflow-hidden h-100 d-flex flex-column text-decoration-none"
+      className="d-flex flex-column pt-0 h-100 overflow-hidden text-decoration-none"
     >
       <div className="p-0">
         <div className="position-relative bg-secondary w-100 overflow-hidden ratio" style={{ aspectRatio: '2/3' }}>
           <img src={imageUrl} alt={title.primaryTitle} className="w-100 h-100" style={{ objectFit: 'cover' }} />
         </div>
       </div>
-      <Card.Body className="d-flex flex-column flex-grow-1">
+      <Card.Body className="d-flex flex-grow-1 flex-column">
         <Card.Title className="h6">{title.primaryTitle}</Card.Title>
         <Card.Text className="text-muted">{title.genres}</Card.Text>
       </Card.Body>
       <Card.Footer>
         <div className="d-flex align-items-center gap-1">
           <Star style={{ width: '1rem', height: '1rem', fill: 'currentColor' }} />
-          <span className="small fw-medium">{10}</span>
+          <span className="small fw-medium">{title.avgRating || 'N/A'}</span>
         </div>
       </Card.Footer>
     </Card>

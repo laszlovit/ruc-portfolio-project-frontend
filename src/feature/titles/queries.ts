@@ -1,12 +1,12 @@
 import type { Title, Titles } from '@/types/titles'
 import { useEffect, useState } from 'react'
-import type { QueryParams } from '../shared/query-params'
-import { buildQueryString } from '../shared/query-params'
+import type { TitlesQueryParams } from '../shared/query-params'
+import { buildTitlesQueryString } from '../shared/query-params'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL
 
-const fetchTitles = async (params?: QueryParams): Promise<Titles> => {
-  const queryString = params ? buildQueryString(params) : ''
+const fetchTitles = async (params?: TitlesQueryParams): Promise<Titles> => {
+  const queryString = params ? buildTitlesQueryString(params) : ''
   const response = await fetch(`${BASE_URL}/titles${queryString}`)
   if (!response.ok) {
     throw new Error(`Failed to fetch titles: ${response.statusText}`)
@@ -24,7 +24,7 @@ const fetchTitle = async (tconst: string): Promise<Title> => {
   return response.json()
 }
 
-export const useTitlesQuery = (params?: QueryParams) => {
+export const useTitlesQuery = (params?: TitlesQueryParams) => {
   const [data, setData] = useState<Titles | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
