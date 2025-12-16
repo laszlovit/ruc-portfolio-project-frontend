@@ -11,17 +11,6 @@ export default function Footer() {
           <p className="small text-muted mb-0">
             © {currentYear} MovieSurf. All rights reserved.
           </p>
-          <div className="d-flex align-items-center gap-4 small text-muted">
-            <Link to="#" className="text-muted text-decoration-none">
-              Privacy Policy
-            </Link>
-            <Link to="#" className="text-muted text-decoration-none">
-              Terms of Service
-            </Link>
-            <Link to="#" className="text-muted text-decoration-none">
-              Contact
-            </Link>
-          </div>
         </div>
       </Container>
     </footer>
