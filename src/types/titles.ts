@@ -29,3 +29,22 @@ export type Titles = {
   nextPage?: string
   previousPage?: string
 }
+
+export type SimilarTitle = {
+  tconst: string
+  primaryTitle: string
+  similarityScore: number
+  avgRating: number
+  numVotes: number
+  poster: string | null
+}
+
+export type SimilarTitles = {
+  items: SimilarTitle[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+  nextPage?: string
+  previousPage?: string
+}

@@ -9,19 +9,8 @@ export default function Footer() {
       <Container>
         <div className="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
           <p className="small text-muted mb-0">
-            © {currentYear} MovieSurf. All rights reserved.
+            Made by Emil, Laszlo and Gleb! Portfolio3 Project &copy; {currentYear}
           </p>
-          <div className="d-flex align-items-center gap-4 small text-muted">
-            <Link to="#" className="text-muted text-decoration-none">
-              Privacy Policy
-            </Link>
-            <Link to="#" className="text-muted text-decoration-none">
-              Terms of Service
-            </Link>
-            <Link to="#" className="text-muted text-decoration-none">
-              Contact
-            </Link>
-          </div>
         </div>
       </Container>
     </footer>
